@@ -2,10 +2,10 @@
 node_modules
 
 # npm
-package-lock.json
+#package-lock.json
 
 # environment variables
-.env
+#.env
 
 ## dist
 #dist
