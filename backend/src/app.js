@@ -9,6 +9,7 @@ import MongoStore from "connect-mongo";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import cors  from "cors";
+import path from 'path';
 import { MONGODB_URI, PORT } from "./config.js";
 
 import indexRoutes from "./routes/index.routes.js";
@@ -20,8 +21,6 @@ import "./config/passport.js";
 
 // const bodyParser = require("body-parser");
 import bodyParser from "body-parser";
-import multer from "multer";
-var upload = multer();
 
 
 
@@ -34,6 +33,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const corsOptions = {
   origin: "http://localhost:5173",
   credentials: true, // Habilitar el intercambio de cookies y otros datos de autenticación
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use(cors(corsOptions));
 
@@ -106,6 +107,13 @@ app.use(articulosRoutes);
 
 // static files
 app.use(express.static(join(__dirname, "public")));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads/images', express.static(path.join(__dirname, '..', 'uploads', 'images')));
+
+
+// app.get('/test-image', (req, res) => {
+//   res.sendFile(path.join(__dirname, '..', 'uploads', 'images', 'zenitsu3.jpg'));
+// });
 
 app.use((req, res) => {
   res.render("404");

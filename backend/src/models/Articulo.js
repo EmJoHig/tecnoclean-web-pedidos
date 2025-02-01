@@ -3,13 +3,17 @@ import bcrypt from "bcryptjs";
 
 const ArticuloSchema = new mongoose.Schema(
   {
-    codigo: { type: String, required: false, unique: true, trim: true },
+    codigo: { type: String, required: false, unique: false, trim: true },
     descripcion: { type: String, required: true },
-    precio: {type: String, required: false},
+    precio: {type: Number, required: false},
     imagen: {type: String, required: false},
     date: { type: Date, default: Date.now },
-    // marca: {type: mongoose.Schema.Types.ObjectId, ref: 'marca', required: true},
-    familiaArticulo: {type: mongoose.Schema.Types.ObjectId, ref: 'familia', required: true},
+    stock: {type: Number, required: false},
+    // familiaArticulo: {type: mongoose.Schema.Types.ObjectId, ref: 'familia', required: false},
+    familiaArticulo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Familia", // Referencia al modelo FamiliaArticulo
+    },
   },
   {
     timestamps: true,

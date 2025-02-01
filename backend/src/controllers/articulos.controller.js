@@ -1,210 +1,15 @@
 import Articulo from "../models/Articulo.js";
 import Familia from "../models/Familia.js";
-
+// import multer from "multer";
 import fs from "fs";
+// import express from 'express';
+// import { type } from "os";
+import * as XLSX from "xlsx"; // Cambia esto
 
-import express from 'express';
-const app = express();
-app.use(express.json());
+import whatsapp from "../libs/whatsapp.js";
 
-// LIST catalogo
-export const renderArticulos = async (req, res) => {
-
-  let searchOptions = {};
-  let familia = req.query.familia;
-  let articulos = null;
-
-  if (familia != undefined && familia == 'all') {
-    articulos = await Articulo.find().lean();
-  } else
-    if (familia != undefined && familia != '') {
-      let flia = await Familia.findOne({ codigo: familia }).lean();
-      searchOptions.familiaArticulo = flia._id;
-      articulos = await Articulo.find(searchOptions).lean();
-    } else {
-      articulos = await Articulo.find().limit(12).lean();
-    }
-
-  let carritoDeCompras = [];
-  //req.session.carrito = [];
-
-  if (JSON.stringify(req.session.carrito) === JSON.stringify({})) {
-    req.session.carrito = [];
-  } else {
-    carritoDeCompras = req.session.carrito;
-  }
-
-  if (carritoDeCompras === undefined) {
-    carritoDeCompras = [];
-  }
-  console.log('carritoDeCompras');
-  console.log(carritoDeCompras);
-
-  res.render("articulos/articulosListado", { articulos, carritoDeCompras });
-
-};
-
-
-// ADMIN ARTICULOS
-
-// LIST
-export const renderAdminArticulos = async (req, res) => {
-
-  let searchOptions = {};
-  let familia = req.query.familia;
-  let articulos = null;
-
-  if (familia != undefined && familia == 'all') {
-    articulos = await Articulo.find().lean();
-  } else
-    if (familia != undefined && familia != '') {
-      let flia = await Familia.findOne({ codigo: familia }).lean();
-      searchOptions.familiaArticulo = flia._id;
-      articulos = await Articulo.find(searchOptions).lean();
-    } else {
-      articulos = await Articulo.find().limit().lean();
-    }
-
-  res.render("articulos/administracionArticulos", { articulos });
-
-};
-
-
-// ALTA ARTICULO
-export const renderArticuloForm = async (req, res) => {
-
-  const familias = await Familia.find();
-  res.render("articulos/altaArticulo", { familias })
-}
-
-export const nuevoArticulo = async (req, res) => {
-  const { descripcion } = req.body;
-
-  console.log('req files');
-  console.log(req.files[0]);
-
-  let binaryData = fs.readFileSync(req.files[0].path);
-  var base64String = new Buffer.from(binaryData).toString("base64");
-
-  const imagen = base64String;
-  const errors = [];
-  if (!descripcion) {
-    errors.push({ text: "Please Write a descripcion." });
-  }
-  if (errors.length > 0)
-    return res.render("articulos/altaArticulo", {
-      errors,
-      description,
-    });
-
-  const nuevo = new Articulo({ descripcion, imagen });
-  await nuevo.save();
-  req.flash("success_msg", "Articulo Added Successfully");
-  res.redirect("/articulos/articulosListado");
-};
-
-
-export const renderEditarArticuloForm = async (req, res) => {
-  const articulo = await Articulo.findById(req.params.id).lean();
-  console.log('articulo');
-  console.log(articulo);
-  res.render("articulos/editarArticulo", { articulo });
-};
-
-export const editarArticulo = async (req, res) => {
-  const { descripcion } = req.body;
-  console.log('ENTRA');
-  await Note.findByIdAndUpdate(req.params.id, { title, description });
-  req.flash("success_msg", "Articulo Updated Successfully");
-  res.redirect("/articulos/administracionArticulos");
-};
-
-export const eliminarArticulo = async (req, res) => {
-  await Articulo.findByIdAndDelete(req.params.id);
-  req.flash("success_msg", "Articulo Deleted Successfully");
-  res.redirect("/articulos/administracionArticulos");
-};
-
-
-// CARRITO
-// export const carritoCompras = async (req, res) => {
-
-//   const familias = await Familia.find();
-
-//   const carritoData = req.query.carrito;
-
-//     console.log(req.query);
-
-//     console.log(carritoData);
-
-//     console.log(JSON.stringify(carritoData, null, 2));
-
-//   // const carritoObj = JSON.parse(req.query.carrito);
-
-// //   carritoData.forEach(producto => {
-// //     if (producto && producto._id) {
-// //         console.log('ID del producto en el carrito:', producto._id);
-// //     }
-// // });
-
-
-//   res.render("articulos/carritoCompras", { familias })
-// }
-
-
-
-export const enviocarritovista = async (req, res) => {
-
-  const cartcompras = JSON.parse(req.body.cartcompras);
-  const lista = cartcompras.cartcomprasData;
-
-  // const cartcompras = JSON.parse(req.session.carrito);
-
-  // console.log('cartcompras');
-  // console.log(cartcompras);
-
-  req.session.carrito = lista;
-  // console.log('req.session.carrito');
-  // console.log(req.session.carrito);
-
-  // const cartcomprasArray = [];
-
-  // for (const key in lista) {
-  //   if (cartcomprasData.hasOwnProperty(key)) {
-  //     const item = cartcomprasData[key];
-  //     const descripcion = item.descripcion;
-  //     const cantidad = item.cantidad;
-  //     console.log(`ID: ${key}, Descripción: ${descripcion}, Cantidad: ${cantidad}`);
-  //   }
-  // }
-
-  res.render("articulos/carritoCompras", { listaDePedidos: lista });
-};
-
-
-export const carritoCompras = async (req, res) => {
-
-  // console.log('DIRECTO VISTA');
-  // const lista = req.session.carrito;
-
-  // console.log('req.session.carrito');
-  // console.log(req.session.carrito);
-
-  // res.render("articulos/carritoCompras", { lista });
-};
-
-
-//envio wsp
-
-export const enviarpedido = async (req, res) => {
-
-  const listaDePedidos = JSON.parse(req.body.lista);
-  console.log('listaDePedidos');
-  console.log(listaDePedidos);
-
-  res.render("articulos/carritoCompras", { listaDePedidos });
-};
-
+// const app = express();
+// app.use(express.json());
 
 
 //--------------------------- API PRO ------------------------------
@@ -215,7 +20,7 @@ export const GetArticulos = async (req, res) => {
   let familia = req.query.familia;
   let articulos = null;
 
-  articulos = await Articulo.find().lean();
+  articulos = await Articulo.find().sort({ descripcion: 1 }).populate("familiaArticulo", "descripcion").lean();
 
   // if (familia != undefined && familia == 'all' ){
   //     articulos = await Articulo.find().lean();
@@ -237,11 +42,33 @@ export const GetArticulosCategoria = async (req, res) => {
 
   //obtener de la request los codigos de las categorias seleccionadas
   let checkedCategorys = req.query.checkedCategorys;
+  const limit = 10;  // Número de artículos a cargar por cada solicitud
+  const offset = req.query.offset || 0;  // El offset (a partir de qué artículo cargar)
+
   let searchOptions = {};
   let articulos = null;
 
-  // console.log('checkedCategorys');
-  // console.log(checkedCategorys);
+  if (checkedCategorys != undefined && checkedCategorys.length > 0) {
+    searchOptions.familiaArticulo = { $in: checkedCategorys };
+
+    articulos = await Articulo.find(searchOptions)
+      .skip(offset)
+      .limit(limit)
+      .lean();
+  } else {
+    // Si no hay categorías seleccionadas, cargar todos los artículos con paginación
+    articulos = await Articulo.find()
+      .skip(offset)
+      .limit(limit)
+      .lean();
+  }
+
+
+  if (!articulos) {
+    return res.status(404).json({ message: "No hay articulos." });
+  }
+
+  res.status(200).json(articulos);
 
 
   // if (checkedCategorys != undefined && checkedCategorys.length > 0 ){
@@ -252,18 +79,23 @@ export const GetArticulosCategoria = async (req, res) => {
   //   articulos = await Articulo.find().lean();
   // }
 
-  if (checkedCategorys != undefined && checkedCategorys.length > 0) {
-    searchOptions.familiaArticulo = { $in: checkedCategorys };
-    articulos = await Articulo.find(searchOptions).lean();
-  } else {
-    articulos = await Articulo.find().lean();
-  }
+  // if (checkedCategorys != undefined && checkedCategorys.length > 0) {
+  //   console.log('offset');
+  //   console.log(offset);
 
+  //   searchOptions.familiaArticulo = { $in: checkedCategorys };
 
-  // console.log('articulos por categorias');
-  // console.log(articulos);
-  // articulos = await Articulo.find().lean();
-  res.json(articulos);
+  //   if (offset != undefined && offset > 0) {
+  //     articulos = await Articulo.find(searchOptions).skip(offset).limit(limit);//lean();
+  //   }
+  //   else {
+  //     articulos = await Articulo.find(searchOptions).limit(limit);
+  //   }
+  // } else {
+  //   articulos = await Articulo.find().lean();
+  // }
+
+  // res.json(articulos);
 };
 
 
@@ -274,6 +106,433 @@ export const GetFamilias = async (req, res) => {
   }
   catch (error) {
     console.error('Error fetching articulos:', error);
-    res.json([]);
+    res.status(500).json({ message: "Error fetching articulos" });
+  }
+};
+
+
+export const GetArticulosQuery = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.status(400).json({ error: "Query parameter is required" });
+    }
+
+    const articulos = await Articulo.find({
+      descripcion: { $regex: query, $options: "i" }, // 'i' para que no sea sensible a mayúsculas/minúsculas
+    });
+
+    return res.json(articulos);
+  } catch (error) {
+    console.error("Error fetching articles by category:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+const generarMensaje = (carrito) => {
+  let mensaje = "¡Hola! Aquí tienes tu pedido:\n\n";
+  carrito.forEach(item => {
+    mensaje += `- ${item.name}: ${item.quantity} unidad(es)\n`;
+  });
+  return mensaje.trim();
+};
+
+const enviarMensaje = (chatId, mensaje) => {
+  return new Promise((resolve, reject) => {
+    whatsapp.sendMessage(chatId, mensaje)
+      .then(() => {
+        resolve("Mensaje enviado correctamente");
+      })
+      .catch((error) => {
+        reject("Error al enviar el mensaje: " + error.message);
+      });
+  });
+};
+
+
+export const EnviarCarritoWsp = async (req, res) => {
+  try {
+    const { carrito } = req.body;
+    const mensajeWSP = generarMensaje(carrito);
+    const tel = '+542215937093'
+    const chatId = tel.substring(1) + "@c.us";
+
+    const number_details = await whatsapp.getNumberId(chatId);
+
+    if (number_details) {
+
+      enviarMensaje(chatId, mensajeWSP)
+        .then((respuesta) => {
+          //console.log(respuesta);
+          res.json({ mensaje: respuesta, res: true });
+        })
+        .catch((error) => {
+          //console.error(error);
+          res.json({ res: false, error: error });
+        });
+    } else {
+      res.json({ res: false })
+    }
+  } catch (error) {
+    console.error("Error fetching articles by category:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "uploads/"); // Ruta de destino
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, Date.now() + "-" + file.originalname); // Nombre del archivo
+//   },
+// });
+
+// const upload = multer({ storage: storage });
+
+// Exportar la carga del archivo
+// export const cargarProductos = upload.single("file");
+
+
+
+// IMPORTACION CON ALTA DE ARTICULOS
+export const ImportarArticulosExcel = async (req, res) => {
+  // Verificar si se cargó un archivo
+
+  // const { formDataExcel } = req.body;
+  const formDataExcel = req.file;
+
+  if (!formDataExcel) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  try {
+    // Leer el archivo Excel
+    const workbook = XLSX.readFile(formDataExcel.path);
+    const sheetName = workbook.SheetNames[0]; // Leer la primera hoja
+    const worksheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(worksheet); // Convertir la hoja en un array de objetos
+
+    // Mapear los datos del Excel a los campos del esquema
+    const productos = data.map(item => ({
+      codigo: item.CODIGO || "", // Si el código es null o undefined, lo dejamos vacío
+      descripcion: item.DETALLE || "", // Descripción o detalle
+      precio: item.PRECIO ?? 0, // Si el precio es null o undefined, lo ponemos en 0
+      familiaArticulo: item.FAMILIA || null, // Asegúrate de que la familia esté referenciada correctamente
+    }));
+
+
+    // quito los duplicados
+    const productosSinDuplicados = Array.from(
+      new Map(productos.map(item => [item.descripcion, item])).values()
+    );
+
+
+    const articulosParaGuardar = [];
+
+    //articulos con propiedades modificadas para guardarse
+    const articulosParaGuardarModif = [];
+
+    (async () => {
+
+      for (const producto of productosSinDuplicados) {
+
+        const productoExistente = await Articulo.findOne({ descripcion: producto.descripcion });
+
+        // Agregar al array de artículos para guardar si no existe
+        if (!productoExistente) {
+
+          articulosParaGuardar.push({
+            codigo: producto.codigo,
+            descripcion: producto.descripcion,
+            precio: producto.precio,
+            familiaArticulo: producto.familiaArticulo,
+          });
+        } else {
+          // console.log(`Artículo ya existe en la base de datos: ${producto.codigo}`);
+        }
+      }
+
+
+      //recorro los articulos que arme para guardar y le seteo las propiedad necesaria para guardarlos
+      for (const articulo of articulosParaGuardar) {
+        const familia = await Familia.findOne({ codigo: articulo.familiaArticulo });
+
+        if (!familia) {
+
+          // obtengo la familia con codigo ARTICULOS
+          const fliaARTICULOS = await Familia.findOne({ codigo: "ARTICULOS" });
+
+          if (fliaARTICULOS) {
+            // seteo al articulo la familia por defecto ARTICULOS
+            articulo.familiaArticulo = fliaARTICULOS._id;
+
+            //seteo las props necesarias para guardar el articulo
+            const nuevoArticulo = new Articulo({
+              codigo: articulo.codigo,
+              descripcion: articulo.descripcion,
+              precio: articulo.precio,
+              familiaArticulo: fliaARTICULOS._id,
+            });
+
+            articulosParaGuardarModif.push(nuevoArticulo);
+
+
+            const responseNuevoArticulo = await nuevoArticulo.save();
+            if (!responseNuevoArticulo) {
+              console.error("Error al guardar el artículo:", responseNuevoArticulo);
+            }
+            else {
+              console.log("Artículo guardado en la base de datos:", responseNuevoArticulo);
+            }
+
+          }
+        } else { // si el articulo impotado tiene familia existente
+
+          // seteo al articulo el id de la familia existente
+          articulo.familiaArticulo = familia._id;
+
+          //seteo las props necesarias para guardar el articulo
+          const nuevoArticulo = new Articulo({
+            codigo: articulo.codigo,
+            descripcion: articulo.descripcion,
+            precio: articulo.precio,
+            familiaArticulo: familia._id,
+          });
+
+          articulosParaGuardarModif.push(nuevoArticulo);
+
+          const responseNuevoArticulo = await nuevoArticulo.save();
+          if (!responseNuevoArticulo) {
+            console.error("Error al guardar el artículo:", responseNuevoArticulo);
+          }
+          else {
+            console.log("Artículo guardado en la base de datos:", responseNuevoArticulo);
+          }
+        }
+      }
+
+      await res.status(200).json({ message: "Productos importados exitosamente", data: articulosParaGuardarModif });
+
+      //   !!!!   IMPORTANTE   !!!!!
+      // esta FUNCION async donde realizo el bucle for, las variables como articulosParaGuardar
+      // no tienen los datos actualizados por fuera de ella.
+    })();
+
+
+    // res.status(200).json({ message: "Productos importados exitosamente", data: articulosParaGuardar, NOdupli: productosSinDuplicados });
+  } catch (error) {
+    console.error("Error al importar productos:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+
+
+// IMPORTACION CON EDICION DE DATOS DE ARTICULOS
+
+export const ActualizarPreciosImportacionExcel = async (req, res) => {
+  const formDataExcel = req.file;
+
+  if (!formDataExcel) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  try {
+    // Leer el archivo Excel
+    const workbook = XLSX.readFile(formDataExcel.path);
+    const sheetName = workbook.SheetNames[0]; // Leer la primera hoja
+    const worksheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(worksheet); // Convertir la hoja en un array de objetos
+
+    // Mapear los datos del Excel a los campos necesarios
+    const productos = data.map(item => ({
+      codigo: item.CODIGO || "", // Si el código es null o undefined, lo dejamos vacío
+      descripcion: item.DETALLE || "", // Descripción o detalle
+      precio: item.PRECIO ?? 0, // Si el precio es null o undefined, lo ponemos en 0
+      //familiaArticulo: item.FAMILIA || null, // Asegúrate de que la familia esté referenciada correctamente
+    }));
+
+    // Validar que no haya productos sin código
+    const productosValidos = productos.filter(producto => producto.codigo);
+
+    // Actualizar precios en la base de datos
+    const resultados = [];
+
+    for (const producto of productosValidos) {
+      try {
+        // Buscar y actualizar el producto por su código
+        const productoActualizado = await Articulo.findOneAndUpdate(
+          { codigo: producto.codigo }, // Filtro por código
+          { $set: { precio: producto.precio } }, // Actualizar el precio
+          { new: true } // Retornar el documento actualizado
+        );
+
+        if (productoActualizado) {
+          resultados.push({
+            codigo: producto.codigo,
+            mensaje: "Precio actualizado",
+            producto: productoActualizado,
+          });
+        } else {
+          resultados.push({
+            codigo: producto.codigo,
+            mensaje: "Producto no encontrado en la base de datos",
+          });
+        }
+      } catch (error) {
+        console.error(`Error al actualizar el producto con código ${producto.codigo}:`, error);
+        resultados.push({
+          codigo: producto.codigo,
+          mensaje: "Error al actualizar el producto",
+          error: error.message,
+        });
+      }
+    }
+
+    res.status(200).json({
+      message: "Actualización de productos completada",
+      data: resultados,
+    });
+
+
+  } catch (error) {
+    console.error("Error al procesar el archivo Excel:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+
+//  ---------   CRUD   ------------
+
+export const CreateArticulo = async (req, res) => {
+  try {
+    const { codigo, descripcion, precio, familia, stock, imagen } = req.body.articulo;
+    // const articuloNuevo = req.body.articulo;
+    const imagenPath = req.file ? req.file : null;
+
+    console.log('imagenPath: ', imagenPath);
+
+    if (!codigo || !descripcion || precio == null || !stock) {// || !familiaArticulo
+      return res.status(400).json({ message: "Todos los campos son requeridos" });
+    }
+
+    const nuevoArticulo = new Articulo({
+      codigo: codigo,
+      descripcion: descripcion,
+      precio: precio,
+      stock: stock,
+      familiaArticulo: familia, 
+      // imagen: req.file ? req.file.path : null,
+    });
+
+    const articuloGuardado = await nuevoArticulo.save();
+
+    // const articuloGuardado = null;
+    // console.log('nuevoArticulo', nuevoArticulo);
+
+    if (articuloGuardado) {
+      res.status(200).json({ message: "Artículo creado exitosamente", data: articuloGuardado });
+    }
+    else {
+      res.status(404).json({ message: "Error al crear el artículo" });
+    }
+
+  } catch (error) {
+    console.error("Error al crear el artículo:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+
+
+export const GetArticuloById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const articulo = await Articulo.findById(id);
+
+    if (!articulo) {
+      return res.status(404).json({ message: "Artículo no encontrado" });
+    }
+
+    res.status(200).json(articulo);
+  } catch (error) {
+    console.error("Error al obtener el artículo:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+
+
+export const UpdateArticulo = async (req, res) => {
+  try {
+    // const { id } = req.params;
+    // console.log('req.body ', req.body);
+    const { id, codigo, descripcion, precio, familia, stock } = req.body;
+    const imagenPath = req.file ? req.file : null;
+
+    let imagenFilename = null;
+    
+    if (imagenPath) {
+      imagenFilename = `/uploads/images/${imagenPath.filename}`; // Ruta de la imagen en el servidor
+    }
+
+
+    // console.log('req.body ', req.body);
+
+    console.log('imagenPath: ', imagenPath);
+
+    if (!codigo || !descripcion || precio == null) { //|| !familiaArticulo
+      return res.status(400).json({ message: "Todos los campos son requeridos" });
+    }
+
+    // articulo.stock = articulo.stock ? parseInt(articulo.stock, 10) : null;
+    // articulo.precio = articulo.precio ? parseInt(articulo.precio, 10) : null;
+
+
+    // const articuloActualizado = null;
+    console.log('imagenFilename: ', imagenFilename);
+
+    const articuloActualizado = await Articulo.findByIdAndUpdate(
+      id,
+      { codigo, descripcion, precio, familiaArticulo: familia, stock, imagen: imagenFilename }, // info =>  codigo: codigo, stock: stock etc
+      { new: true } //  devuelve el documento ya actualizado
+    );
+
+    if (!articuloActualizado) {
+      return res.status(404).json({ message: "Artículo no encontrado" });
+    }
+
+    res.status(200).json({ message: "Artículo actualizado exitosamente", data: articuloActualizado });
+  } catch (error) {
+    console.error("Error al actualizar el artículo:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+
+
+export const DeleteArticulo = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const articuloEliminado = await Articulo.findByIdAndDelete(id);
+
+    if (!articuloEliminado) {
+      return res.status(404).json({ message: "Artículo no encontrado" });
+    }
+
+    res.status(200).json({ message: "Artículo eliminado exitosamente" });
+
+  } catch (error) {
+    console.error("Error al eliminar el artículo:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };
