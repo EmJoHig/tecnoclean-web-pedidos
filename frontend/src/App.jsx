@@ -34,9 +34,12 @@ import { ArticuloProvider } from "./context/articulosContext";
 
 // vistas
 import WelcomePage from "./pages/WelcomePage";
-import  HomePage  from "./pages/HomePage";
+import HomePage from "./pages/HomePage";
 import ShopPage from "./pages/ShopPage";
 import CartPage from './pages/CartPage';
+import DetalleArticuloPage from "./pages/DetalleArticuloPage";
+import AdministrarArticulosPage from "./pages/AdministrarArticulosPage";
+
 // import RegisterPage from "./pages/RegisterPage";
 // import { LoginPage } from "./pages/LoginPage";
 // import { MinisterioPage } from "./pages/Ministerio/MinisterioPage";
@@ -59,7 +62,7 @@ const Layout = () => {
         theme="colored"
       />
       <HeaderTC />
-      <HeaderBottomTC />
+      {/* <HeaderBottomTC /> */}
       <SpecialCaseTC />
       {/* <ScrollRestoration /> */}
       <Outlet />
@@ -105,31 +108,36 @@ function App() {
   return (
     <AuthProvider>
       <ArticuloProvider>
-      <MinisterioProvider>
-        <UsuarioProvider>
-          <BrowserRouter>
-            <main className="">
-              <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index path="/home" element={<HomePage />}/>
+        <MinisterioProvider>
+          <UsuarioProvider>
+            <BrowserRouter>
+              <main className="">
+                <Routes>
+                  <Route path="/" element={<Layout />}>
 
-                  <Route path="/welcome" element={<WelcomePage />} />
+                    <Route index element={<HomePage />} />
 
-                  <Route path="/shop" element={<ShopPage />} />
+                    <Route path="/welcome" element={<WelcomePage />} />
 
-                  <Route path="/cart" element={<CartPage />} />
+                    <Route path="/shop" element={<ShopPage />} />
 
-                  
-                  <Route element={<ProtectedRoute />}>
-                    {/* <Route path="/solicitudes-reservas" element={<SolicitudPage />} /> */}
+                    <Route path="/cart" element={<CartPage />} />
+
+                    <Route path="/articulo/:_id" element={<DetalleArticuloPage />}></Route>
+
+                    <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} />
+
+
+                    <Route element={<ProtectedRoute />}>
+                      {/* <Route path="/solicitudes-reservas" element={<SolicitudPage />} /> */}
+                    </Route>
+
                   </Route>
-
-                </Route>
-              </Routes>
-            </main>
-          </BrowserRouter>
-        </UsuarioProvider>
-      </MinisterioProvider>
+                </Routes>
+              </main>
+            </BrowserRouter>
+          </UsuarioProvider>
+        </MinisterioProvider>
       </ArticuloProvider>
     </AuthProvider>
   );

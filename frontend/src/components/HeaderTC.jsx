@@ -4,6 +4,8 @@ import { MdClose } from "react-icons/md";
 import { HiMenuAlt2 } from "react-icons/hi";
 import { motion } from "framer-motion";
 import { logo, logoLight } from "../assets/images";
+import logomobiletc from "../assets/images/logomobiletc.jpg";
+import logomobiletc2 from "../assets/images/logomobiletc.png";
 import Image from "../components/designLayouts/Image";
 import { navBarList } from "../constants";
 import Flex from "../components/designLayouts/Flex";
@@ -27,12 +29,12 @@ const HeaderTC = () => {
   }, []);
 
   return (
-    <div className="w-full h-20 bg-white sticky top-0 z-50 border-b-[1px] border-b-gray-200">
+    <div className="w-full h-20 bg-white sticky top-0 z-50 border-b-[1px] border-b-gray-200" style={{ background: "#e00725", color: "#fff" }}>
       <nav className="h-full px-4 max-w-container mx-auto relative">
         <Flex className="flex items-center justify-between h-full">
           <Link to="/">
             <div>
-              <Image className="w-32 object-cover" imgSrc={logo} />
+              <Image className="w-32 object-cover" imgSrc={logomobiletc2} />
             </div>
           </Link>
           <div>
@@ -47,12 +49,23 @@ const HeaderTC = () => {
                   {navBarList.map(({ _id, title, link }) => (
                     <NavLink
                       key={_id}
-                      className="flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base text-[#767676] hover:underline underline-offset-[4px] decoration-[1px] hover:text-[#262626] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
+                      className="flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base text-[#fff] hover:underline underline-offset-[4px] decoration-[1px] hover:text-[#262626] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
                       to={link}
                       state={{ data: location.pathname.split("/")[1] }}
                     >
                       <li>{title}</li>
                     </NavLink>
+                    // <NavLink
+                    //   key={_id}
+                    //   className={({ isActive }) =>
+                    //     `flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base ${isActive ? "text-yellow-500" : "text-white"
+                    //     } hover:text-yellow-500 underline-offset-[4px] decoration-[1px] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0`
+                    //   }
+                    //   to={link}
+                    //   state={{ data: location.pathname.split("/")[1] }}
+                    // >
+                    //   <li>{title}</li>
+                    // </NavLink>
                   ))}
                 </>
               </motion.ul>
@@ -69,10 +82,10 @@ const HeaderTC = () => {
                   transition={{ duration: 0.5 }}
                   className="w-[80%] h-full relative"
                 >
-                  <div className="w-full h-full bg-primeColor p-6">
+                  <div className="w-full h-full bg-[#e0072596] p-6">
                     <img
-                      className="w-28 mb-6"
-                      src={logoLight}
+                      className="w-30 h-auto mb-6"
+                      src={logomobiletc2}
                       alt="logoLight"
                     />
                     <ul className="text-gray-200 flex flex-col gap-2">
@@ -91,7 +104,7 @@ const HeaderTC = () => {
                         </li>
                       ))}
                     </ul>
-                    <div className="mt-4">
+                    {/* <div className="mt-4">
                       <h1
                         onClick={() => setCategory(!category)}
                         className="flex justify-between text-base cursor-pointer items-center font-titleFont mb-2"
@@ -113,30 +126,16 @@ const HeaderTC = () => {
                           <li className="headerSedenavLi">Others</li>
                         </motion.ul>
                       )}
-                    </div>
-                    <div className="mt-4">
+                    </div> */}
+                    {/* <div className="mt-4">
                       <h1
                         onClick={() => setBrand(!brand)}
                         className="flex justify-between text-base cursor-pointer items-center font-titleFont mb-2"
                       >
-                        Shop by Brand
-                        <span className="text-lg">{brand ? "-" : "+"}</span>
+                        Contacto
+                        <span className="text-lg"></span>
                       </h1>
-                      {brand && (
-                        <motion.ul
-                          initial={{ y: 15, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ duration: 0.4 }}
-                          className="text-sm flex flex-col gap-1"
-                        >
-                          <li className="headerSedenavLi">New Arrivals</li>
-                          <li className="headerSedenavLi">Gudgets</li>
-                          <li className="headerSedenavLi">Accessories</li>
-                          <li className="headerSedenavLi">Electronics</li>
-                          <li className="headerSedenavLi">Others</li>
-                        </motion.ul>
-                      )}
-                    </div>
+                    </div> */}
                   </div>
                   <span
                     onClick={() => setSidenav(false)}

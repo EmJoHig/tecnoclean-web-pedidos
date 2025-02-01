@@ -60,12 +60,17 @@ export const navBarList = [
   {
     _id: 1001,
     title: "Home",
-    link: "/home",
+    link: "/",
   },
   {
     _id: 1002,
     title: "Tienda",
     link: "/shop",
+  },
+  {
+    _id: 1003,
+    title: "Admin Articulos",
+    link: "/administrar-articulos",
   },
   // {
   //   _id: 1003,

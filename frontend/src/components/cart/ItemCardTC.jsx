@@ -16,7 +16,16 @@ const ItemCardTC = ({ item }) => {
           onClick={() => dispatch(deleteItem(item._id))}
           className="text-primeColor hover:text-red-500 duration-300 cursor-pointer"
         />
-        <img className="w-32 h-32" src={item.image} alt="productImage" />
+        {/* <img className="w-32 h-32" src={item.imagen} alt="productImage" /> */}
+        {item.imagen ? (
+          <img
+            className="w-[25%]"
+            src={`http://localhost:4000${item.imagen.replace(/ /g, "%20")}`}
+            alt="productImg"
+          />
+        ) : (
+          <></>
+        )}
         <h1 className="font-titleFont font-semibold">{item.name}</h1>
       </div>
       <div className="col-span-5 mdl:col-span-3 flex items-center justify-between py-4 mdl:py-0 px-4 mdl:px-0 gap-6 mdl:gap-0">

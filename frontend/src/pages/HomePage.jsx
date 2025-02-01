@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import BannerTC from "../components/BannerTC";
 import BannerBottomTC from "../components/BannerBottomTC";
 import BestSellersTC from "../components/BestSellersTC";
@@ -20,12 +20,12 @@ const HomePage = () => {
 
         <div className="w-full mx-auto">
             <BannerTC />
-            <BannerBottomTC />
+            {/* <BannerBottomTC /> */}
             <div className="max-w-container mx-auto px-4">
-                <SaleTC />
+                {/* <SaleTC /> */}
                 {/* <NewArrivalsTC /> */}
                 {/* <BestSellersTC /> */}
-                <YearProductTC />
+                {/* <YearProductTC /> */}
                 {/* <SpecialOffertsTC /> */}
             </div>
         </div>
