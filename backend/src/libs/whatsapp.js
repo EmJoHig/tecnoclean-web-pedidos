@@ -1,8 +1,9 @@
 import qrcode from 'qrcode-terminal'; // Importa el módulo completo como un objeto
 import whatsappWeb from 'whatsapp-web.js'; // Importa el módulo completo como un objeto
+import QRCode from 'qrcode';
 
 const { Client, LocalAuth } = whatsappWeb; // Desestructura para obtener las clases necesarias
-
+let qrData = '';
 const whatsapp = new Client({
     puppeteer: {
           headless: true,
@@ -11,8 +12,10 @@ const whatsapp = new Client({
     authStrategy: new LocalAuth()
   });
 
-whatsapp.on('qr', qr => {
+whatsapp.on('qr', async  qr => {
   console.log('QR Code received');
+  qrData = await QRCode.toDataURL(qr);
+  console.log(`QR BASE64: ${qrData}`);
     qrcode.generate(qr, {
         small: true
     });
