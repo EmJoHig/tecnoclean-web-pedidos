@@ -9,7 +9,7 @@ async function main() {
   //await createAdminUser();
  
  
-  await  whatsapp.initialize();
+  // await  whatsapp.initialize();
 
   
   app.listen(app.get("port")); 
