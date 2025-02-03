@@ -146,7 +146,7 @@ const PaginationTC = ({ itemsPerPage, articuloslista }) => {
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 mdl:gap-4 lg:gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 mdl:gap-4 lg:gap-10 justify-items-center">
         <Items
           currentItems={articulos}
           selectedBrands={selectedBrands}

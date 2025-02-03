@@ -158,7 +158,7 @@ const AdministrarArticulosPage = () => {
   const handleDeleteArticulo = async (id) => {
     try {
 
-      const resp = await deleteArticulo(id);
+      const resp = "";//await deleteArticulo(id);
 
       if (resp === "") {
         alert('exito al eliminar el articulo:', resp);
