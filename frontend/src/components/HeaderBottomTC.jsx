@@ -11,6 +11,7 @@ import { BsSuitHeartFill } from "react-icons/bs";
 import useIsMobile from "../hooks/useIsMobile";
 import { useArticulos } from "../context/articulosContext";
 import { toggleCategory, filterArticulos } from "../redux/orebiSlice";
+import { API_URL } from "../config";
 
 const HeaderBottom = () => {
 
@@ -218,7 +219,7 @@ const HeaderBottom = () => {
                       {item.imagen ? (
                         <img
                           className="w-[25%]"
-                          src={`http://localhost:4000${item.imagen.replace(/ /g, "%20")}`}
+                          src={`${API_URL}${item.imagen.replace(/ /g, "%20")}`}
                           alt="productImg"
                         />
                       ) : (

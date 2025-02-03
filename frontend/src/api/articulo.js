@@ -1,11 +1,13 @@
 import axios from "./axios";
+import { API_URL } from "../config";
+
 
 // export const getArticulosRequest = async () => axios.get("http://localhost:4000/articulos/getArticulos");
 
 export const getArticulosRequest = async () => {
     try {
-        const response = await axios.get(`http://localhost:4000/articulos/getArticulos`, {
-            
+        const response = await axios.get(`${API_URL}/articulos/getArticulos`, {
+
         });
 
         await delay(2000);
@@ -29,7 +31,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const getArticulosCategoriaRequest = async (checkedCategorys, offset) => {
     try {
-        const response = await axios.get(`http://localhost:4000/articulos/getArticulosPorCategoria`, {
+        const response = await axios.get(`${API_URL}/articulos/getArticulosPorCategoria`, {
             params: {
                 checkedCategorys: checkedCategorys,
                 offset: Number(offset) // Asegúrate de convertirlo a número
@@ -48,7 +50,7 @@ export const getArticulosCategoriaRequest = async (checkedCategorys, offset) => 
 
 export const getArticulosQueryRequest = async (query) => {
     try {
-        const response = await axios.get(`http://localhost:4000/articulos/getArticulosQuery`, {
+        const response = await axios.get(`${API_URL}/articulos/getArticulosQuery`, {
             params: { query },
         });
 
@@ -63,9 +65,9 @@ export const getArticulosQueryRequest = async (query) => {
 export const enviarCarritoWspRequest = async (carrito) => {
     try {
         await delay(2000);
-        
+
         const response = await axios.post(
-            `http://localhost:4000/articulos/enviarCarritoWsp`,
+            `${API_URL}/articulos/enviarCarritoWsp`,
             { carrito },
             {
                 headers: {
@@ -86,9 +88,9 @@ export const enviarCarritoWspRequest = async (carrito) => {
 
 export const importarArticulosExcelRequest = async (formDataExcel) => {
     try {
-        
+
         const response = await axios.post(
-            `http://localhost:4000/articulos/importar-articulos-excel`,
+            `${API_URL}/articulos/importar-articulos-excel`,
             formDataExcel,
             {
                 headers: {
@@ -110,9 +112,9 @@ export const importarArticulosExcelRequest = async (formDataExcel) => {
 // importar update precios
 export const updatePreciosImportarExcelRequest = async (formDataExcel) => {
     try {
-        
+
         const response = await axios.post(
-            `http://localhost:4000/articulos/update-precios-importar-excel`,
+            `${API_URL}/articulos/update-precios-importar-excel`,
             formDataExcel,
             {
                 headers: {
@@ -132,7 +134,7 @@ export const updatePreciosImportarExcelRequest = async (formDataExcel) => {
 
 
 
-export const getFamiliasRequest = async () => axios.get("http://localhost:4000/articulos/getFamilias");
+export const getFamiliasRequest = async () => axios.get(`${API_URL}/articulos/getFamilias`);
 
 
 // CRUD
@@ -140,7 +142,7 @@ export const getFamiliasRequest = async () => axios.get("http://localhost:4000/a
 export const createArticuloRequest = async (articulo) => {
     try {
         const response = await axios.post(
-            `http://localhost:4000/articulos/nuevo-articulo`,
+            `${API_URL}/articulos/nuevo-articulo`,
             { articulo },
             {
                 headers: {// Content-Typ e=> multipart/form-data NO ES NECESARIO PORQUE ENVIO articulo como FormData, q lo hace automatico
@@ -161,8 +163,8 @@ export const createArticuloRequest = async (articulo) => {
 
 export const getArticuloPorIdRequest = async (id) => {
     try {
-        const response = await axios.get(`http://localhost:4000/articulos/get-articulo-id/${id}`, {
-            
+        const response = await axios.get(`${API_URL}/articulos/get-articulo-id/${id}`, {
+
         });
 
         await delay(2000);
@@ -181,8 +183,7 @@ export const updateArticuloRequest = async (id, articulo) => {
 
         console.log("updateArticuloRequest axios: ", articulo);
 
-        const response = await axios.post(
-            `http://localhost:4000/articulos/editar-articulo`,
+        const response = await axios.post(`${API_URL}/articulos/editar-articulo`,
             articulo,
             {
                 headers: {// Content-Type => multipart/form-data NO ES NECESARIO PORQUE ENVIO articulo como FormData, q lo hace automatico
@@ -204,8 +205,8 @@ export const updateArticuloRequest = async (id, articulo) => {
 
 export const deleteArticuloRequest = async (id) => {
     try {
-        
-        const response = await axios.delete(`http://localhost:4000/articulos/eliminar-articulo/${id}`);
+
+        const response = await axios.delete(`${API_URL}/articulos/eliminar-articulo/${id}`);
 
         await delay(2000);
 

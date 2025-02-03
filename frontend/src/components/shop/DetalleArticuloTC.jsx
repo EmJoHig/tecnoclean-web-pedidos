@@ -3,6 +3,8 @@ import { useLocation } from "react-router-dom";
 import BreadcrumbsTC from "../../components/shop/BreadcrumbsTC";;
 import ProductInfoTC from "../../components/shop/ProductInfoTC";
 import { FaDownload } from "react-icons/fa";
+import { API_URL } from "../../config";
+
 
 const tabs = [
   {
@@ -72,7 +74,7 @@ const DetalleArticuloTC = () => {
             {productInfo.imagen ? (
               <img
                 className="w-full h-full"
-                src={`http://localhost:4000${productInfo.imagen.replace(/ /g, "%20")}`}
+                src={`${API_URL}${productInfo.imagen.replace(/ /g, "%20")}`}
                 alt="imagen"
               />
             ) : (

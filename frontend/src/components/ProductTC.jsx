@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/orebiSlice";
 import { toast } from "react-toastify";
+import { API_URL } from "../config";
 
 const ProductTC = (props) => {
   const dispatch = useDispatch();
@@ -41,7 +42,7 @@ const ProductTC = (props) => {
       <div className="max-w-80 max-h-80 relative overflow-y-hidden border-[1px] border-b-0">
         <div onClick={handleProductDetails} className="cursor-pointer">
           {/* <Image className="w-full h-full" imgSrc={props.img} /> */}
-          <Image className="w-full h-full" imgSrc={`http://localhost:4000${props.imagen.replace(/ /g, "%20")}`} />
+          <Image className="w-full h-full" imgSrc={`${API_URL}${props.imagen.replace(/ /g, "%20")}`} />
         </div>
         <div className="absolute top-6 left-8">
           {props.badge && <BadgeTC text="New" />}

@@ -6,6 +6,7 @@ import {
   drecreaseQuantity,
   increaseQuantity,
 } from "../../redux/orebiSlice";
+import { API_URL } from "../../config";
 
 const ItemCardTC = ({ item }) => {
   const dispatch = useDispatch();
@@ -20,7 +21,7 @@ const ItemCardTC = ({ item }) => {
         {item.imagen ? (
           <img
             className="w-[25%]"
-            src={`http://localhost:4000${item.imagen.replace(/ /g, "%20")}`}
+            src={`${API_URL}${item.imagen.replace(/ /g, "%20")}`}
             alt="productImg"
           />
         ) : (
