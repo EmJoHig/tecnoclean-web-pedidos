@@ -17,6 +17,9 @@ import {
 } from "../controllers/articulos.controller.js";
 import multer from 'multer';
 
+import { auth } from "express-oauth2-jwt-bearer";
+
+
 const router = Router();
 
 // var storage = multer.diskStorage({
@@ -90,30 +93,37 @@ const uploadImage = multer({
 
 //--------------------------------   API PRO   --------------------------------
 
-router.get("/articulos/getArticulos", GetArticulos);
+const jwtCheck = auth({
+  audience: 'https://tecnoclean/api',
+  issuerBaseURL: 'https://dev-irmmgtg7shkt0mjl.us.auth0.com/',
+  tokenSigningAlg: 'RS256'
+});
 
-router.get("/articulos/getArticulosPorCategoria", GetArticulosCategoria);
 
-router.get("/articulos/getArticulosQuery", GetArticulosQuery);
+router.get("/articulos/getArticulos", jwtCheck, GetArticulos);
 
-router.get("/articulos/getFamilias", GetFamilias);
+router.get("/articulos/getArticulosPorCategoria", jwtCheck, GetArticulosCategoria);
 
-router.post("/articulos/enviarCarritoWsp", EnviarCarritoWsp);
+router.get("/articulos/getArticulosQuery", jwtCheck, GetArticulosQuery);
 
-router.post("/articulos/importar-articulos-excel", uploadExcel.single("file"), ImportarArticulosExcel);
+router.get("/articulos/getFamilias", jwtCheck, GetFamilias);
 
-router.post("/articulos/update-precios-importar-excel", uploadExcel.single("file"), ActualizarPreciosImportacionExcel);
+router.post("/articulos/enviarCarritoWsp", jwtCheck, EnviarCarritoWsp);
+
+router.post("/articulos/importar-articulos-excel", jwtCheck, uploadExcel.single("file"), ImportarArticulosExcel);
+
+router.post("/articulos/update-precios-importar-excel", jwtCheck, uploadExcel.single("file"), ActualizarPreciosImportacionExcel);
 
 
 
 // CRUD
-router.post("/articulos/nuevo-articulo", uploadImage.single("file"), CreateArticulo);
+router.post("/articulos/nuevo-articulo", jwtCheck, uploadImage.single("file"), CreateArticulo);
 
-router.get("/articulos/get-articulo-id", GetArticuloById);
+router.get("/articulos/get-articulo-id", jwtCheck, GetArticuloById);
 
-router.post("/articulos/editar-articulo", uploadImage.single("file"), UpdateArticulo);
+router.post("/articulos/editar-articulo", jwtCheck, uploadImage.single("file"), UpdateArticulo);
 
-router.delete("/articulos/eliminar-articulo/:id", DeleteArticulo);
+router.delete("/articulos/eliminar-articulo/:id", jwtCheck, DeleteArticulo);
 
 export default router;
 
