@@ -9,13 +9,33 @@ import logomobiletc2 from "../assets/images/logomobiletc.png";
 import Image from "../components/designLayouts/Image";
 import { navBarList } from "../constants";
 import Flex from "../components/designLayouts/Flex";
+import { useAuth0 } from "@auth0/auth0-react";
+
+
 
 const HeaderTC = () => {
+
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
+
   const [showMenu, setShowMenu] = useState(true);
   const [sidenav, setSidenav] = useState(false);
   const [category, setCategory] = useState(false);
   const [brand, setBrand] = useState(false);
   const location = useLocation();
+  // useEffect(() => {
+  //   let ResponsiveMenu = () => {
+  //     if (window.innerWidth < 667) {
+  //       setShowMenu(false);
+  //     } else {
+  //       setShowMenu(true);
+  //     }
+  //   };
+  //   ResponsiveMenu();
+  //   window.addEventListener("resize", ResponsiveMenu);
+  // }, []);
+
   useEffect(() => {
     let ResponsiveMenu = () => {
       if (window.innerWidth < 667) {
@@ -26,7 +46,23 @@ const HeaderTC = () => {
     };
     ResponsiveMenu();
     window.addEventListener("resize", ResponsiveMenu);
-  }, []);
+
+    // Verificar el rol del usuario cuando el componente se monta
+    if (isAuthenticated && user) {
+      const roles = user['https://tecnoclean/api/roles'];
+      if (roles && roles.includes('ADMIN')) {
+        setIsAdmin(true);
+      }
+    }
+
+    console.log("user:", user);
+
+    return () => {
+      window.removeEventListener("resize", ResponsiveMenu);
+    };
+  }, [isAuthenticated, user]);
+
+
 
   return (
     <div className="w-full h-20 bg-white sticky top-0 z-50 border-b-[1px] border-b-gray-200" style={{ background: "#e00725", color: "#fff" }}>
@@ -46,15 +82,15 @@ const HeaderTC = () => {
                 className="flex items-center w-auto z-50 p-0 gap-2"
               >
                 <>
-                  {navBarList.map(({ _id, title, link }) => (
-                    <NavLink
-                      key={_id}
-                      className="flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base text-[#fff] hover:underline underline-offset-[4px] decoration-[1px] hover:text-[#262626] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
-                      to={link}
-                      state={{ data: location.pathname.split("/")[1] }}
-                    >
-                      <li>{title}</li>
-                    </NavLink>
+                  {/* {navBarList.map(({ _id, title, link }) => (
+                    // <NavLink
+                    //   key={_id}
+                    //   className="flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base text-[#fff] hover:underline underline-offset-[4px] decoration-[1px] hover:text-[#262626] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
+                    //   to={link}
+                    //   state={{ data: location.pathname.split("/")[1] }}
+                    // >
+                    //   <li>{title}</li>
+                    // </NavLink>
                     // <NavLink
                     //   key={_id}
                     //   className={({ isActive }) =>
@@ -66,7 +102,45 @@ const HeaderTC = () => {
                     // >
                     //   <li>{title}</li>
                     // </NavLink>
-                  ))}
+                  ))} */}
+                  <NavLink
+                    key={1}
+                    className="flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base text-[#fff] hover:underline underline-offset-[4px] decoration-[1px] hover:text-[#262626] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
+                    to={"/"}
+                    state={{ data: location.pathname.split("/")[1] }}
+                  >
+                    <li>Home</li>
+                  </NavLink>
+
+                  {isAuthenticated ? (
+                    <>
+                      <NavLink
+                        key={2}
+                        className="flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base text-[#fff] hover:underline underline-offset-[4px] decoration-[1px] hover:text-[#262626] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
+                        to={"/shop"}
+                        state={{ data: location.pathname.split("/")[1] }}
+                      >
+                        <li>Tienda</li>
+                      </NavLink>
+                      {isAdmin && (
+                        <NavLink
+                          key={3}
+                          className="flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base text-[#fff] hover:underline underline-offset-[4px] decoration-[1px] hover:text-[#262626] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
+                          to={"/administrar-articulos"}
+                          state={{ data: location.pathname.split("/")[1] }}
+                        >
+                          <li>Admin Articulos</li>
+                        </NavLink>
+                      )}
+                      <button
+                        onClick={logout}
+                        className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-200"
+                      >
+                        Cerrar sesión
+                      </button>
+                    </>
+                  ) : null}
+
                 </>
               </motion.ul>
             )}

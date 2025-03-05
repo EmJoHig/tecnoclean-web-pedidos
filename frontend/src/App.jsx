@@ -117,19 +117,16 @@ function App() {
 
                     <Route index element={<HomePage />} />
 
-                    <Route path="/welcome" element={<WelcomePage />} />
-
-                    <Route path="/shop" element={<ShopPage />} />
-
-                    <Route path="/cart" element={<CartPage />} />
-
-                    <Route path="/articulo/:_id" element={<DetalleArticuloPage />}></Route>
-
-                    <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} />
-
+                    {/* <Route path="/welcome" element={<WelcomePage />} /> */}
 
                     <Route element={<ProtectedRoute />}>
-                      {/* <Route path="/solicitudes-reservas" element={<SolicitudPage />} /> */}
+                      <Route path="/shop" element={<ShopPage />} />
+
+                      <Route path="/cart" element={<CartPage />} />
+
+                      <Route path="/articulo/:_id" element={<DetalleArticuloPage />}></Route>
+
+                      <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} />
                     </Route>
 
                   </Route>

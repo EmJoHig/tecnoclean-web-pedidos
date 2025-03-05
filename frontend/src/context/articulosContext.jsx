@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import {
   getArticulosRequest,
   getFamiliasRequest,
@@ -24,6 +25,9 @@ export const useArticulos = () => {
 };
 
 export function ArticuloProvider({ children }) {
+
+  const { getAccessTokenSilently } = useAuth0();
+
   const [articulos, setArticulos] = useState([]);
 
   const [articulosQuery, setArticulosQuery] = useState([]);
@@ -48,7 +52,13 @@ export function ArticuloProvider({ children }) {
   const getArticulos = async () => {
 
     try {
-      const res = await getArticulosRequest();
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
+      const res = await getArticulosRequest(token);
       // console.log("res.data");
       // console.log(res.data);
       // setArticulos(res.data);
@@ -65,10 +75,16 @@ export function ArticuloProvider({ children }) {
   const GetArticulosPorCategoria = async (checkedCategorys, offset) => {
 
     try {
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
       //setArticulos(null);
       setLoading(true);
 
-      const res = await getArticulosCategoriaRequest(checkedCategorys, offset);
+      const res = await getArticulosCategoriaRequest(token, checkedCategorys, offset);
 
       if (res != null) {
         if (offset > 0) {
@@ -102,7 +118,12 @@ export function ArticuloProvider({ children }) {
   const GetArticulosQuery = async (query) => {
     try {
 
-      const res = await getArticulosQueryRequest(query);
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
+      const res = await getArticulosQueryRequest(token, query);
 
       console.log("res");
       console.log(res);
@@ -126,8 +147,13 @@ export function ArticuloProvider({ children }) {
   const enviarCarritoWsp = async (articulos) => {
     try {
 
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
       setLoading(true);
-      const res = await enviarCarritoWspRequest(articulos);
+      const res = await enviarCarritoWspRequest(token, articulos);
       if (res) {
         return res.data;
       } else {
@@ -147,7 +173,13 @@ export function ArticuloProvider({ children }) {
 
   const GetFamilias = async () => {
     try {
-      const res = await getFamiliasRequest();
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
+      const res = await getFamiliasRequest(token);
       setFamilias(res.data);
       return res.data;
     } catch (error) {
@@ -160,11 +192,16 @@ export function ArticuloProvider({ children }) {
   const importarArticulosExcel = async (formDataExcel) => {
     try {
 
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
       setLoading(true);
 
       console.log("formDataExcel", formDataExcel);
 
-      const res = await importarArticulosExcelRequest(formDataExcel);
+      const res = await importarArticulosExcelRequest(token, formDataExcel);
       if (res) {
         return res.data;
       } else {
@@ -183,9 +220,14 @@ export function ArticuloProvider({ children }) {
   const updatePreciosImportarExcel = async (formDataExcel) => {
     try {
 
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
       setLoading(true);
 
-      const res = await updatePreciosImportarExcelRequest(formDataExcel);
+      const res = await updatePreciosImportarExcelRequest(token, formDataExcel);
       if (res) {
         return res.data;
       } else {
@@ -205,8 +247,14 @@ export function ArticuloProvider({ children }) {
 
   const createArticulo = async (articulo) => {
     try {
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
       setLoading(true);
-      const res = await createArticuloRequest(articulo);
+      const res = await createArticuloRequest(token, articulo);
 
       if (res && res.status === 200) {
         return "";
@@ -223,7 +271,13 @@ export function ArticuloProvider({ children }) {
 
   const getArticulo = async (id) => {
     try {
-      const res = await getArticuloPorIdRequest(id);
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
+      const res = await getArticuloPorIdRequest(token, id);
       if (res && res.status === 200) {
         return res.data;
       } else {
@@ -236,9 +290,15 @@ export function ArticuloProvider({ children }) {
 
   const updateArticulo = async (id, articulo) => {
     try {
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
       setLoading(true);
 
-      const res = await updateArticuloRequest(id, articulo);
+      const res = await updateArticuloRequest(token, id, articulo);
       if (res && res.status === 200) {
         return "";
       } else {
@@ -253,9 +313,14 @@ export function ArticuloProvider({ children }) {
 
   const deleteArticulo = async (id) => {
     try {
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+      
       setLoading(true);
 
-      const res = await deleteArticuloRequest(id);
+      const res = await deleteArticuloRequest(token, id);
       if (res && res.status === 200) {
         return "";
       } else {

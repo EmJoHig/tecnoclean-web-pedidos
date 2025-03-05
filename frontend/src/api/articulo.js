@@ -2,16 +2,18 @@ import axios from "./axios";
 import { API_URL } from "../config";
 
 
-// export const getArticulosRequest = async () => axios.get("http://localhost:4000/articulos/getArticulos");
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const getArticulosRequest = async () => {
+
+export const getArticulosRequest = async (token) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/getArticulos`, {
-
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         });
 
-        await delay(2000);
-
+        // await delay(2000);
         return response;
     } catch (error) {
         console.error("Error fetching articles by category:", error);
@@ -20,26 +22,18 @@ export const getArticulosRequest = async () => {
 };
 
 
-
-
-// export const getArticulosCategoriaRequest = async (checkedCategorys) => 
-//     axios.get("http://localhost:4000/articulos/getArticulosPorCategoria", checkedCategorys);
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-
-
-export const getArticulosCategoriaRequest = async (checkedCategorys, offset) => {
+export const getArticulosCategoriaRequest = async (token, checkedCategorys, offset) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/getArticulosPorCategoria`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
             params: {
                 checkedCategorys: checkedCategorys,
                 offset: Number(offset) // Asegúrate de convertirlo a número
             }
         });
 
-        await delay(2000);
-
         return response;
     } catch (error) {
         console.error("Error fetching articles by category:", error);
@@ -48,9 +42,12 @@ export const getArticulosCategoriaRequest = async (checkedCategorys, offset) => 
 };
 
 
-export const getArticulosQueryRequest = async (query) => {
+export const getArticulosQueryRequest = async (token, query) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/getArticulosQuery`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
             params: { query },
         });
 
@@ -62,15 +59,15 @@ export const getArticulosQueryRequest = async (query) => {
 };
 
 
-export const enviarCarritoWspRequest = async (carrito) => {
+export const enviarCarritoWspRequest = async (token, carrito) => {
     try {
-        await delay(2000);
 
         const response = await axios.post(
             `${API_URL}/articulos/enviarCarritoWsp`,
             { carrito },
             {
                 headers: {
+                    Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
             }
@@ -86,7 +83,7 @@ export const enviarCarritoWspRequest = async (carrito) => {
 
 
 
-export const importarArticulosExcelRequest = async (formDataExcel) => {
+export const importarArticulosExcelRequest = async (token, formDataExcel) => {
     try {
 
         const response = await axios.post(
@@ -94,12 +91,11 @@ export const importarArticulosExcelRequest = async (formDataExcel) => {
             formDataExcel,
             {
                 headers: {
+                    Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data",
                 },
             }
         );
-
-        await delay(2000);
 
         return response;
     } catch (error) {
@@ -110,7 +106,7 @@ export const importarArticulosExcelRequest = async (formDataExcel) => {
 
 
 // importar update precios
-export const updatePreciosImportarExcelRequest = async (formDataExcel) => {
+export const updatePreciosImportarExcelRequest = async (token, formDataExcel) => {
     try {
 
         const response = await axios.post(
@@ -118,12 +114,11 @@ export const updatePreciosImportarExcelRequest = async (formDataExcel) => {
             formDataExcel,
             {
                 headers: {
+                    Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data",
                 },
             }
         );
-
-        await delay(2000);
 
         return response;
     } catch (error) {
@@ -134,24 +129,39 @@ export const updatePreciosImportarExcelRequest = async (formDataExcel) => {
 
 
 
-export const getFamiliasRequest = async () => axios.get(`${API_URL}/articulos/getFamilias`);
+// export const getFamiliasRequest = async (token) => axios.get(`${API_URL}/articulos/getFamilias`);
+export const getFamiliasRequest = async (token) => {
+    try {
+        const response = await axios.get(`${API_URL}/articulos/getFamilias`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching articles by category:", error);
+        throw error;
+    }
+};
+
+
 
 
 // CRUD
 
-export const createArticuloRequest = async (articulo) => {
+export const createArticuloRequest = async (token, articulo) => {
     try {
         const response = await axios.post(
             `${API_URL}/articulos/nuevo-articulo`,
             { articulo },
             {
                 headers: {// Content-Typ e=> multipart/form-data NO ES NECESARIO PORQUE ENVIO articulo como FormData, q lo hace automatico
+                    Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
             }
         );
-
-        await delay(2000);
 
         return response;
     } catch (error) {
@@ -161,13 +171,13 @@ export const createArticuloRequest = async (articulo) => {
 };
 
 
-export const getArticuloPorIdRequest = async (id) => {
+export const getArticuloPorIdRequest = async (token, id) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/get-articulo-id/${id}`, {
-
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         });
-
-        await delay(2000);
 
         return response;
     } catch (error) {
@@ -178,7 +188,7 @@ export const getArticuloPorIdRequest = async (id) => {
 
 
 
-export const updateArticuloRequest = async (id, articulo) => {
+export const updateArticuloRequest = async (token, id, articulo) => {
     try {
 
         console.log("updateArticuloRequest axios: ", articulo);
@@ -187,12 +197,11 @@ export const updateArticuloRequest = async (id, articulo) => {
             articulo,
             {
                 headers: {// Content-Type => multipart/form-data NO ES NECESARIO PORQUE ENVIO articulo como FormData, q lo hace automatico
+                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',
                 },
             }
         );
-
-        await delay(2000);
 
         return response;
     } catch (error) {
@@ -203,12 +212,10 @@ export const updateArticuloRequest = async (id, articulo) => {
 
 
 
-export const deleteArticuloRequest = async (id) => {
+export const deleteArticuloRequest = async (token, id) => {
     try {
 
         const response = await axios.delete(`${API_URL}/articulos/eliminar-articulo/${id}`);
-
-        await delay(2000);
 
         return response;
     } catch (error) {
