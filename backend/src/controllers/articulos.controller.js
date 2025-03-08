@@ -413,11 +413,14 @@ export const ActualizarPreciosImportacionExcel = async (req, res) => {
 
 export const CreateArticulo = async (req, res) => {
   try {
-    const { codigo, descripcion, precio, familia, stock, imagen } = req.body.articulo;
-    // const articuloNuevo = req.body.articulo;
+    const { codigo, descripcion, precio, familia, stock } = req.body;
     const imagenPath = req.file ? req.file : null;
 
-    console.log('imagenPath: ', imagenPath);
+    let imagenFilename = null;
+    
+    if (imagenPath) {
+      imagenFilename = `/uploads/images/${imagenPath.filename}`; // Ruta de la imagen en el servidor
+    }
 
     if (!codigo || !descripcion || precio == null || !stock) {// || !familiaArticulo
       return res.status(400).json({ message: "Todos los campos son requeridos" });
@@ -429,13 +432,11 @@ export const CreateArticulo = async (req, res) => {
       precio: precio,
       stock: stock,
       familiaArticulo: familia, 
-      // imagen: req.file ? req.file.path : null,
+      imagen: imagenFilename
     });
 
     const articuloGuardado = await nuevoArticulo.save();
 
-    // const articuloGuardado = null;
-    // console.log('nuevoArticulo', nuevoArticulo);
 
     if (articuloGuardado) {
       res.status(200).json({ message: "Artículo creado exitosamente", data: articuloGuardado });
@@ -473,8 +474,6 @@ export const GetArticuloById = async (req, res) => {
 
 export const UpdateArticulo = async (req, res) => {
   try {
-    // const { id } = req.params;
-    // console.log('req.body ', req.body);
     const { id, codigo, descripcion, precio, familia, stock } = req.body;
     const imagenPath = req.file ? req.file : null;
 
@@ -485,20 +484,13 @@ export const UpdateArticulo = async (req, res) => {
     }
 
 
-    // console.log('req.body ', req.body);
-
-    console.log('imagenPath: ', imagenPath);
+    //console.log('imagenPath: ', imagenPath);
 
     if (!codigo || !descripcion || precio == null) { //|| !familiaArticulo
       return res.status(400).json({ message: "Todos los campos son requeridos" });
     }
 
-    // articulo.stock = articulo.stock ? parseInt(articulo.stock, 10) : null;
-    // articulo.precio = articulo.precio ? parseInt(articulo.precio, 10) : null;
-
-
-    // const articuloActualizado = null;
-    console.log('imagenFilename: ', imagenFilename);
+    //console.log('imagenFilename: ', imagenFilename);
 
     const articuloActualizado = await Articulo.findByIdAndUpdate(
       id,
