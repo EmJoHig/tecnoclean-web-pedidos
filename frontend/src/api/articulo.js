@@ -22,7 +22,7 @@ export const getArticulosRequest = async (token) => {
 };
 
 
-export const getArticulosCategoriaRequest = async (token, checkedCategorys, offset) => {
+export const getArticulosCategoriaRequest = async (token, checkedCategorys, checkedSeccion, offset) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/getArticulosPorCategoria`, {
             headers: {
@@ -30,6 +30,7 @@ export const getArticulosCategoriaRequest = async (token, checkedCategorys, offs
             },
             params: {
                 checkedCategorys: checkedCategorys,
+                checkedSeccion: checkedSeccion,
                 offset: Number(offset) // Asegúrate de convertirlo a número
             }
         });
@@ -154,11 +155,11 @@ export const createArticuloRequest = async (token, articulo) => {
     try {
         const response = await axios.post(
             `${API_URL}/articulos/nuevo-articulo`,
-            { articulo },
+            articulo,
             {
                 headers: {// Content-Typ e=> multipart/form-data NO ES NECESARIO PORQUE ENVIO articulo como FormData, q lo hace automatico
                     Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
+                    'Content-Type': 'multipart/form-data',
                 },
             }
         );

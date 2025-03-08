@@ -7,6 +7,7 @@ const initialState = {
   checkedBrands: [],
   checkedCategorys: [],
   articulosShop: [],
+  checkedSeccion: null,
 };
 
 export const orebiSlice = createSlice({
@@ -86,10 +87,19 @@ export const orebiSlice = createSlice({
         state.checkedCategorys.push(category);
       }
     },
+
+
     //reducer filtros articulos
     filterArticulos: (state, action) => {
       // Actualiza el listado con los artículos obtenidos de la API
       state.articulosShop = action.payload;
+    },
+
+
+    //reducer filtro seccion
+    filterSeccion: (state, action) => {
+      // Actualiza el filtro de seccion
+      state.checkedSeccion = action.payload;
     },
     
   },
@@ -104,5 +114,6 @@ export const {
   toggleBrand,
   toggleCategory,
   filterArticulos,
+  filterSeccion
 } = orebiSlice.actions;
 export default orebiSlice.reducer;

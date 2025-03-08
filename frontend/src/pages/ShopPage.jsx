@@ -5,7 +5,7 @@ import BreadcrumbsTC from "../components/shop/BreadcrumbsTC";
 import PaginationTC from "../components/shop/PaginationTC";
 import ProductBannerTC from "../components/shop/ProductBannerTC";
 import ShopSideNavTC from "../components/shop/ShopSideNavTC";
-import { filterArticulos } from "../redux/orebiSlice";
+import { filterSeccion } from "../redux/orebiSlice";
 import { useArticulos } from "../context/articulosContext";
 
 
@@ -15,13 +15,19 @@ const ShopPage = () => {
 
   const { articulos, loading, GetArticulosPorCategoria } = useArticulos();
   // const { familias, GetFamilias } = useArticulos();
+  const [itemsPerPage, setItemsPerPage] = useState(9);
+  const [selectedSeccion, setSelectedSeccion] = useState(null);
 
   const checkedCategorys = useSelector(
     (state) => state.orebiReducer.checkedCategorys
   );
 
-  const articulosShop = useSelector(
-    (state) => state.orebiReducer.articulosShop
+  // const articulosShop = useSelector(
+  //   (state) => state.orebiReducer.articulosShop
+  // );
+
+  const checkedSeccion = useSelector(
+    (state) => state.orebiReducer.checkedSeccion
   );
 
   // const [articulosShopListadoRender, setArticulosShopistadoRender] = useState([]);
@@ -36,8 +42,51 @@ const ShopPage = () => {
   // }, []);
 
   useEffect(() => {
-    GetArticulosPorCategoria(checkedCategorys, 0);
-  }, [checkedCategorys]); // Asegúrate de que este efecto se ejecute cuando cambien las categorías seleccionadas
+    GetArticulosPorCategoria(checkedCategorys, null, 0);
+  }, [checkedCategorys]);
+
+  const secciones = [
+    { id: "TODAS", label: "TODAS" },
+    { id: "cocina", label: "Cocina" },
+    { id: "baño", label: "Baño" },
+    { id: "perfumeria", label: "Perfumería" },
+    { id: "mascotas", label: "Mascotas" },
+    { id: "venenos", label: "Venenos" },
+    { id: "bazar", label: "Bazar" },
+    { id: "pileta", label: "Pileta" },
+  ];
+
+
+  // !!!!!! DESCOMENTAR CUANDO TERMINO DE PROBAR EL CREAR ARTICULO  ¡¡¡¡¡¡
+  // Efecto para cargar artículos cuando cambia la SECCION seleccionada
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     try {
+
+  //       console.log("useEffect SECCION dispatch filterSeccion, selectedSeccion:", selectedSeccion);
+
+  //       await dispatch(filterSeccion(selectedSeccion));
+
+  //       GetArticulosPorCategoria(checkedCategorys, selectedSeccion, 0);
+  //     } catch (error) {
+  //       console.error("Error al cargar los productos:", error);
+  //     }
+  //   }
+
+  //   fetchData();
+  // }, [selectedSeccion]);
+
+
+
+
+
+
+
+
+  const handleSeccionSelect = (seccionId) => {
+    setSelectedSeccion(seccionId);
+  };
+
 
 
   //probar que cosa no anda si  descomento esto
@@ -67,7 +116,7 @@ const ShopPage = () => {
   // }, [dispatch, GetArticulosPorCategoria]);
 
 
-  const [itemsPerPage, setItemsPerPage] = useState(9);
+
 
   const itemsPerPageFromBanner = (itemsPerPage) => {
     setItemsPerPage(itemsPerPage);
@@ -86,6 +135,34 @@ const ShopPage = () => {
       <HeaderBottomTC />
       <div className="max-w-container mx-auto px-4">
         <BreadcrumbsTC title="Tienda" />
+
+
+        {/* FILTROS DE SECCIONES */}
+
+        {/* !!!!!! DESCOMENTAR CUANDO TERMINO DE PROBAR EL CREAR ARTICULO  ¡¡¡¡¡¡ */}
+        {/* <div className="flex flex-wrap gap-4 mt-4">
+          {secciones.map((seccion) => (
+            <div
+              key={seccion.id}
+              onClick={() => handleSeccionSelect(seccion.id)}
+              className={`cursor-pointer p-4 border rounded-lg shadow-sm transition-all duration-200 ${
+                selectedSeccion === seccion.id
+                  ? "bg-blue-500 text-white border-blue-500"
+                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"
+              }`}
+            >
+              {seccion.label}
+            </div>
+          ))}
+        </div> */}
+
+        {/* !!!!!! DESCOMENTAR CUANDO TERMINO DE PROBAR EL CREAR ARTICULO  ¡¡¡¡¡¡ */}
+
+
+
+
+
+
         <div className="w-full h-full flex pb-20 gap-10">
           <div className="w-[20%] lgl:w-[25%] hidden mdl:inline-flex h-full">
             <ShopSideNavTC />

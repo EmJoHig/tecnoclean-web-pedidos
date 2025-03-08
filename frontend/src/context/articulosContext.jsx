@@ -72,7 +72,7 @@ export function ArticuloProvider({ children }) {
   };
 
 
-  const GetArticulosPorCategoria = async (checkedCategorys, offset) => {
+  const GetArticulosPorCategoria = async (checkedCategorys, checkedSeccion, offset) => {
 
     try {
 
@@ -84,7 +84,7 @@ export function ArticuloProvider({ children }) {
       //setArticulos(null);
       setLoading(true);
 
-      const res = await getArticulosCategoriaRequest(token, checkedCategorys, offset);
+      const res = await getArticulosCategoriaRequest(token, checkedCategorys, checkedSeccion, offset);
 
       if (res != null) {
         if (offset > 0) {

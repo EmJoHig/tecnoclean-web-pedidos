@@ -139,7 +139,7 @@ const CategoryTC = () => {
   useEffect(() => {
     // console.log("checkedCategorys después de dispatch");
     // console.log(checkedCategorys);
-    GetArticulosPorCategoria(checkedCategorys, 0);
+    GetArticulosPorCategoria(checkedCategorys, null, 0);
     updateOffset(0);
     // console.log("articulos recueprados checked categorua antes");
     // console.log(articulos);

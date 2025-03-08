@@ -114,7 +114,7 @@ const PaginationTC = ({ itemsPerPage, articuloslista }) => {
     try {
       const newOffset = offset === 0 ? 10 : offset;
 
-      const response = await GetArticulosPorCategoria(checkedCategorys, offset);
+      const response = await GetArticulosPorCategoria(checkedCategorys, null, offset);
 
       if (response && response.length > 0) {
         updateOffset((prevOffset) => prevOffset + response.length);

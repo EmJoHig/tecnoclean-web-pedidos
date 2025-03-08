@@ -56,7 +56,7 @@ const HeaderBottom = () => {
 
 
   useEffect(() => {
-    GetArticulosPorCategoria(checkedCategorys, 0);
+    GetArticulosPorCategoria(checkedCategorys, null, 0);
     updateOffset(0);
   }, [checkedCategorys]);
 
