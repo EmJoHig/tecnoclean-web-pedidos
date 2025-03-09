@@ -1,6 +1,9 @@
 # Nodejs
 node_modules
 
+# carpeta con imagenes
+uploads
+
 # npm
 #package-lock.json
 
