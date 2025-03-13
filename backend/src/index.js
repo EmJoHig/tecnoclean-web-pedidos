@@ -6,7 +6,7 @@ import whatsapp from "../src/libs/whatsapp.js";
 async function main() {
   await connectDB();
    
- // anda papaaaa
+ // anda papaaaa ahora que onda?
   await  whatsapp.initialize();
 
   

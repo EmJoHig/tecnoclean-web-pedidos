@@ -477,11 +477,11 @@ export const UpdateArticulo = async (req, res) => {
     const { id, codigo, descripcion, precio, familia, stock } = req.body;
     const imagenPath = req.file ? req.file : null;
 
-    let imagenFilename = null;
+    //let imagenFilename = null;
     
-    if (imagenPath) {
-      imagenFilename = `/uploads/images/${imagenPath.filename}`; // Ruta de la imagen en el servidor
-    }
+    // if (imagenPath) {
+    //   imagenFilename = `/uploads/images/${imagenPath.filename}`; // Ruta de la imagen en el servidor
+    // }
 
 
     //console.log('imagenPath: ', imagenPath);
@@ -491,6 +491,20 @@ export const UpdateArticulo = async (req, res) => {
     }
 
     //console.log('imagenFilename: ', imagenFilename);
+
+    // Busca el artículo actual para obtener la imagen existente
+    const articuloExistente = await Articulo.findById(id);
+    if (!articuloExistente) {
+      return res.status(404).json({ message: "Artículo no encontrado" });
+    }
+
+    let imagenFilename = articuloExistente.imagen; 
+
+    // Si se proporciona una nueva imagen, actualiza la ruta de la imagen
+    if (imagenPath) {
+      imagenFilename = `/uploads/images/${imagenPath.filename}`; // Ruta de la nueva imagen en el servidor
+    }
+
 
     const articuloActualizado = await Articulo.findByIdAndUpdate(
       id,
