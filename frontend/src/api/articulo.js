@@ -216,7 +216,16 @@ export const updateArticuloRequest = async (token, id, articulo) => {
 export const deleteArticuloRequest = async (token, id) => {
     try {
 
-        const response = await axios.delete(`${API_URL}/articulos/eliminar-articulo/${id}`);
+        // const response = await axios.delete(`${API_URL}/articulos/eliminar-articulo/${id}`);
+
+        const response = await axios.delete(`${API_URL}/articulos/eliminar-articulo/${id}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
 
         return response;
     } catch (error) {

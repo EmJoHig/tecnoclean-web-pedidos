@@ -7,7 +7,7 @@ const ProductModal = ({ product, onClose, onSave, familias }) => {
   const [familia, setFamilia] = useState(product?.familiaArticulo?._id || "");
   const [precio, setPrecio] = useState(product?.precio || "");
   const [stock, setStock] = useState(product?.stock || "");
-  const [imagen, setImagen] = useState(null);
+  const [imagen, setImagen] = useState(product?.imagen ?? "");
 
   const handleImageChange = (e) => {
     setImagen(e.target.files[0]);
@@ -70,7 +70,8 @@ const ProductModal = ({ product, onClose, onSave, familias }) => {
             className="mb-2 p-2 border border-gray-300 w-full"
           />
           <select
-            value={product?.familiaArticulo? product.familiaArticulo._id : familia}
+            // value={product?.familiaArticulo? product.familiaArticulo._id : familia}
+            value={familia}
             onChange={(e) => setFamilia(e.target.value)}
             className="mb-2 p-2 border border-gray-300 w-full"
           >
