@@ -223,7 +223,7 @@ const AdministrarArticulosPage = () => {
             >
               LIMPIAR
             </button>
-
+<h1>andas capo?</h1>
           </div>
         </div>
 
