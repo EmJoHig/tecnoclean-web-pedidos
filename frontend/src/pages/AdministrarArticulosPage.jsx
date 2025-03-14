@@ -73,9 +73,9 @@ const AdministrarArticulosPage = () => {
 
       if (!formJson.id) {  // NUEVO  producto
 
+        console.log('formArticuloJson NEW', formArticuloJson);
         const resp = await createArticulo(formArticuloJson);
 
-        // console.log('formArticuloJson NEW', formArticuloJson);
 
         if (resp === "") {
           alert('exito al crear el articulo:', resp);
