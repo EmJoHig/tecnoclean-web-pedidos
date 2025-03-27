@@ -46,6 +46,10 @@ export const GetArticulosCategoria = async (req, res) => {
   const offset = req.query.offset || 0;  // El offset (a partir de qué artículo cargar)
 
   let searchOptions = {};
+
+  // articulos con stock mayor a cero
+  searchOptions.stock = { $gt: 0 };
+
   let articulos = null;
 
   if (checkedCategorys != undefined && checkedCategorys.length > 0) {
@@ -57,7 +61,7 @@ export const GetArticulosCategoria = async (req, res) => {
       .lean();
   } else {
     // Si no hay categorías seleccionadas, cargar todos los artículos con paginación
-    articulos = await Articulo.find()
+    articulos = await Articulo.find({ stock: { $gt: 0 } })
       .skip(offset)
       .limit(limit)
       .lean();
