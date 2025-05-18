@@ -1,5 +1,6 @@
 import Articulo from "../models/Articulo.js";
 import Familia from "../models/Familia.js";
+import Fragancia from "../models/Fragancia.js";
 // import multer from "multer";
 import fs from "fs";
 // import express from 'express';
@@ -103,6 +104,7 @@ export const GetArticulosCategoria = async (req, res) => {
 };
 
 
+// GET FAMILIAS TODAS
 export const GetFamilias = async (req, res) => {
   try {
     const familias = await Familia.find();
@@ -111,6 +113,46 @@ export const GetFamilias = async (req, res) => {
   catch (error) {
     console.error('Error fetching articulos:', error);
     res.status(500).json({ message: "Error fetching articulos" });
+  }
+};
+
+// GET FAMILIAS CON ARTICULOS
+export const GetFamiliasConArticulos = async (req, res) => {
+  try {
+    const familias = await Familia.find();
+
+    const familiasConArticulos = [];
+
+    if(familias != null && familias.length > 0) {
+      for (const familia of familias) {
+        const count = await Articulo.countDocuments({ familiaArticulo: familia._id });
+        if (count > 0) {
+          familiasConArticulos.push(familia);
+        }
+      }
+    }
+    else {
+      familiasConArticulos = familias;
+    }
+
+    res.json(familiasConArticulos);
+  }
+  catch (error) {
+    console.error('Error fetching articulos:', error);
+    res.status(500).json({ message: "Error fetching articulos" });
+  }
+};
+
+
+// GET FRAGANCIAS TODAS
+export const GetFragancias = async (req, res) => {
+  try {
+    const fragancias = await Fragancia.find();
+    res.json(fragancias);
+  }
+  catch (error) {
+    console.error('Error fetching fragancias:', error);
+    res.status(500).json({ message: "Error fetching fragancias" });
   }
 };
 
@@ -136,12 +178,32 @@ export const GetArticulosQuery = async (req, res) => {
 
 
 
-const generarMensaje = (carrito) => {
-  let mensaje = "¡Hola! Aquí tienes tu pedido:\n\n";
-  carrito.forEach(item => {
-    mensaje += `- ${item.name}: ${item.quantity} unidad(es)\n`;
+const generarMensaje = (bodyCarritoUsuario) => {
+  // let mensaje = "¡Hola! Aquí tienes tu pedido:\n\n";
+  // carrito.forEach(item => {
+  //   mensaje += `- ${item.name}: ${item.quantity} unidad(es)\n`;
+  //   if(item.fragancia != "") {
+  //     mensaje += `  Fragancia: ${item.fragancia}\n`;
+  //   }
+  // });
+  // return mensaje.trim();
+
+  let mensaje = "🛒 ¡ ¡ ¡ NUEVO PEDIDO ! ! !*\n\n";
+  mensaje += ` *EMAIL:* ${bodyCarritoUsuario.mailUsuario}\n`;
+  mensaje += ` *NOMBRE:* ${bodyCarritoUsuario.nombreUsuario}\n`;
+  mensaje += ` *TELEFONO:* ${bodyCarritoUsuario.telefono}\n\n`;
+  mensaje += " *Artículos:*\n\n";
+  bodyCarritoUsuario.articulos.forEach(item => {
+    mensaje += `• ${item.name}\n`;
+    mensaje += `  Cantidad: ${item.quantity}\n`;
+    if (item.fragancia) {
+      mensaje += `  Fragancia: ${item.fragancia}\n`;
+    }
+    mensaje += "\n";
   });
+
   return mensaje.trim();
+
 };
 
 const enviarMensaje = (chatId, mensaje) => {
@@ -159,8 +221,8 @@ const enviarMensaje = (chatId, mensaje) => {
 
 export const EnviarCarritoWsp = async (req, res) => {
   try {
-    const { carrito } = req.body;
-    const mensajeWSP = generarMensaje(carrito);
+    const { bodyCarritoUsuario } = req.body;
+    const mensajeWSP = generarMensaje(bodyCarritoUsuario);
     const tel = '+542215937093'
     const chatId = tel.substring(1) + "@c.us";
 
@@ -175,7 +237,7 @@ export const EnviarCarritoWsp = async (req, res) => {
         })
         .catch((error) => {
           //console.error(error);
-          res.json({ res: false, error: error });
+          res.status(500).json({ res: false, error: error.message || error });
         });
     } else {
       res.json({ res: false })

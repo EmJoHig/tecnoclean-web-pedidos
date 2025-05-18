@@ -7,7 +7,7 @@ async function main() {
   await connectDB();
    
  // anda papaaaa ahora que onda?
-  //await  whatsapp.initialize();
+  await  whatsapp.initialize();
 
   
   app.listen(app.get("port")); 

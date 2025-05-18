@@ -7,6 +7,8 @@ import {
   GetArticulosCategoria,
   GetArticulosQuery,
   GetFamilias,
+  GetFamiliasConArticulos,
+  GetFragancias,
   EnviarCarritoWsp,
   ImportarArticulosExcel,
   ActualizarPreciosImportacionExcel,
@@ -107,6 +109,10 @@ router.get("/articulos/getArticulosPorCategoria", jwtCheck, GetArticulosCategori
 router.get("/articulos/getArticulosQuery", jwtCheck, GetArticulosQuery);
 
 router.get("/articulos/getFamilias", jwtCheck, GetFamilias);
+
+router.get("/articulos/getFamiliasConArticulos", jwtCheck, GetFamiliasConArticulos);
+
+router.get("/articulos/getFragancias", jwtCheck, GetFragancias);
 
 router.post("/articulos/enviarCarritoWsp", jwtCheck, EnviarCarritoWsp);
 

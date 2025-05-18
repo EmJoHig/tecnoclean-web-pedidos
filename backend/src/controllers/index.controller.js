@@ -21,8 +21,8 @@ export const renderIndex = async (req, res) => {
   if(carritoDeCompras === undefined){
     carritoDeCompras = [];
   }
-  console.log('carritoDeCompras index');
-  console.log(carritoDeCompras);
+  // console.log('carritoDeCompras index');
+  // console.log(carritoDeCompras);
 
 
   res.render("index", { articulos, familias, carritoDeCompras });
