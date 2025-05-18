@@ -55,7 +55,7 @@ const HeaderTC = () => {
       }
     }
 
-    console.log("user:", user);
+    // console.log("user:", user);
 
     return () => {
       window.removeEventListener("resize", ResponsiveMenu);
@@ -163,20 +163,46 @@ const HeaderTC = () => {
                       alt="logoLight"
                     />
                     <ul className="text-gray-200 flex flex-col gap-2">
-                      {navBarList.map((item) => (
+                      <li
+                        className="font-normal hover:font-bold items-center text-lg text-gray-200 hover:underline underline-offset-[4px] decoration-[1px] hover:text-white md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
+                        key="1"
+                      >
+                        <NavLink
+                          to="/"
+                          // state={{ data: location.pathname.split("/")[1] }}
+                          onClick={() => setSidenav(false)}
+                        >
+                          Home
+                        </NavLink>
+                      </li>
+
+                      <li
+                        className="font-normal hover:font-bold items-center text-lg text-gray-200 hover:underline underline-offset-[4px] decoration-[1px] hover:text-white md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
+                        key="2"
+                      >
+                        <NavLink
+                          to="/shop"
+                          // state={{ data: location.pathname.split("/")[1] }}
+                          onClick={() => setSidenav(false)}
+                        >
+                          Tienda
+                        </NavLink>
+                      </li>
+
+                      {isAdmin && (
                         <li
                           className="font-normal hover:font-bold items-center text-lg text-gray-200 hover:underline underline-offset-[4px] decoration-[1px] hover:text-white md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
-                          key={item._id}
+                          key="3"
                         >
                           <NavLink
-                            to={item.link}
-                            state={{ data: location.pathname.split("/")[1] }}
+                            to="/administrar-articulos"
+                            // state={{ data: location.pathname.split("/")[1] }}
                             onClick={() => setSidenav(false)}
                           >
-                            {item.title}
+                            Admin Articulos
                           </NavLink>
                         </li>
-                      ))}
+                      )}
                     </ul>
                     {/* <div className="mt-4">
                       <h1

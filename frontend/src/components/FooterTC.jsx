@@ -28,7 +28,7 @@ const FooterTC = () => {
     }
   };
   return (
-    <div className="w-full bg-[#e00725] py-20">
+    <div className="w-full bg-[#e00725] py-20" style={{ marginTop: "30px" }}>
       <div className="max-w-container mx-auto grid grid-cols-1 md:grid-cols-2  xl:grid-cols-6 px-4 gap-10">
         <div className="col-span-2">
           <FooterListTitleTC title=" Sobre Nosotros" />
@@ -38,8 +38,8 @@ const FooterTC = () => {
             </p>
             <ul className="flex items-center gap-2">
               <a
-                href="/"
-                // target="_blank"
+                href="https://www.facebook.com/profile.php?id=100083003598977"
+                target="_blank"
                 rel="noreferrer"
               >
                 <li className="w-12 h-12 bg-primeColor text-white hover:text-black cursor-pointer text-lg rounded-full flex justify-center items-center hover:bg-white duration-300">

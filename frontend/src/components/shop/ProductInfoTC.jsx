@@ -1,14 +1,37 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../redux/orebiSlice";
 import imprimante1 from "../../assets/images/products/bestSeller/imprimante1.webp";
+import { useArticulos } from "../../context/articulosContext";
+
 // import { addToCart } from "../../../redux/orebiSlice";
 
 const ProductInfoTC = ({ productInfo }) => {
+
+  const { fragancias, GetFragancias } = useArticulos();
+
+  const [selectedFragancia, setSelectedFragancia] = useState("");
+
   const highlightStyle = {
     color: "#d0121a", // Change this to the desired color
     fontWeight: "bold", // Change this to the desired font weight
   };
+
+  const validCodes = ["15205", "7790126120210", "7790126137010"];
+
+
+  useEffect(() => {
+    GetFragancias();
+  }, []);
+
+
+  // Establecer el primer valor de fragancia como valor inicial si no hay uno seleccionado
+  useEffect(() => {
+    if (fragancias && fragancias.length > 0 && !selectedFragancia) {
+      setSelectedFragancia(fragancias[0].nombre); // Selecciona la primera fragancia por defecto
+    }
+  }, [fragancias, selectedFragancia]);
+
 
   // const renderDescripcion = () => {
   //   if (!productInfo.descripcion) {
@@ -41,6 +64,36 @@ const ProductInfoTC = ({ productInfo }) => {
         </span> */}
       </p>
       <hr />
+
+      {/* Selección de Fragancia */}
+      {validCodes.includes(productInfo.codigo) && (
+        <div className="mt-4">
+          <label htmlFor="fragancia" className="block text-sm font-medium text-gray-700">
+            Selecciona una fragancia
+          </label>
+          <select
+            id="fragancia"
+            name="fragancia"
+            value={selectedFragancia}
+            onChange={(e) => setSelectedFragancia(e.target.value)}
+            className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            style={{
+              width: "20%",
+              maxHeight: "15rem",
+              overflowY: "auto",
+            }}
+          >
+            {fragancias && fragancias.map((fragancia) => (
+              <option key={fragancia.nombre} value={fragancia.nombre}>
+                {fragancia.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+
+
       {/* <p className="text-base text-gray-600">{renderDescripcion()}</p> */}
 
       {/* <p className="text-base text-gray-600">{productInfo.precio}</p> */}
@@ -99,24 +152,60 @@ const ProductInfoTC = ({ productInfo }) => {
       {/* <p className="font-medium text-lg">
         <span className="font-normal">Colors:</span> {productInfo.color}
       </p> */}
-      <button
+
+
+      {/* ESTE ANDABA BIEN PERO EL DE ABAJO LE PASA EL TRAPO */}
+      {/* <button
         onClick={() =>
           dispatch(
             addToCart({
               _id: productInfo._id,
+              codigo: productInfo.codigo,
               name: productInfo.descripcion,
               quantity: 1,
               imagen: productInfo.imagen,
               badge: null,
               price: productInfo.precio,
               colors: productInfo.color,
+              fragancia: selectedFragancia,
             })
           )
         }
         className="w-full py-4 bg-[#16a34a] hover:bg-[#15803d] duration-300 text-white text-lg font-titleFont rounded"
       >
         Agregar al Carrito
+      </button> */}
+
+      <button
+        onClick={() => {
+          // Si el código requiere fragancia, se la agregamos al _id
+          const customId = validCodes.includes(productInfo.codigo) && selectedFragancia
+            ? `${productInfo._id}-${selectedFragancia}`
+            : productInfo._id;
+
+          dispatch(
+            addToCart({
+              _id: customId,
+              codigo: productInfo.codigo,
+              name: productInfo.descripcion,
+              quantity: 1,
+              imagen: productInfo.imagen,
+              badge: null,
+              price: productInfo.precio,
+              colors: productInfo.color,
+              fragancia: selectedFragancia,
+            })
+          );
+        }}
+        className="w-full py-4 bg-[#16a34a] hover:bg-[#15803d] duration-300 text-white text-lg font-titleFont rounded"
+      >
+        Agregar al Carrito
       </button>
+
+
+
+
+
       {/* <p className="font-normal text-sm">
         <span className="text-base font-medium"> Categories:</span> Spring
         collection, Streetwear, Women Tags: featured SKU: N/A

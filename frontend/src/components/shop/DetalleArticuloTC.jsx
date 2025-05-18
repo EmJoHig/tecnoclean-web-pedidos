@@ -45,6 +45,7 @@ const DetalleArticuloTC = () => {
   };
 
   useEffect(() => {
+    //aca se setea el producto seleccionado
     setProductInfo(location.state.item);
     setPrevLocation(location.pathname);
   }, [location, productInfo.ficheTech]);

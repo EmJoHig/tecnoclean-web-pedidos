@@ -9,15 +9,21 @@ import { emptyCart } from "../assets/images/index";
 import ItemCardTC from "../components/cart/ItemCardTC";
 import { useArticulos } from "../context/articulosContext";
 import { FaSpinner, FaCheck } from "react-icons/fa";
-
+import { useAuth0 } from "@auth0/auth0-react";
+import { toast } from "react-toastify";
 
 const CartPage = () => {
   const dispatch = useDispatch();
   const { enviarCarritoWsp, loading } = useArticulos();
+
+  const { user, getAccessTokenSilently, getIdTokenClaims } = useAuth0();
+
   const navigate = useNavigate();
 
   const products = useSelector((state) => state.orebiReducer.products);
   const [totalAmt, setTotalAmt] = useState("");
+
+  // COSTO ENVÍO, MAS ADELANTE...
   const [shippingCharge, setShippingCharge] = useState("");
 
   const [showModalConfirm, setShowModalConfirm] = useState(false);
@@ -36,6 +42,25 @@ const CartPage = () => {
 
 
 
+
+  // Dentro de tu useEffect
+useEffect(() => {
+  async function fetchData() {
+    try {
+      const claims = await getIdTokenClaims();
+
+      console.log("user:", user);
+
+      
+    } catch (error) {
+      console.error("Error al obtener claims:", error);
+    }
+  }
+
+  fetchData();
+}, []);
+
+
   // useEffect(() => {
   //   if (totalAmt <= 200) {
   //     setShippingCharge(30);
@@ -48,28 +73,36 @@ const CartPage = () => {
 
 
   const handleClickEnviarCarrito = async () => {
-    // let mensaje = "Hola, quisiera realizar el siguiente pedido: \n";
-    // products.map((item) => {
-    //   mensaje += item.descripcion + " - " + item.quantity + " unidades\n";
-    //   return mensaje;
-    // });
-    // mensaje += "Total: $" + (totalAmt + shippingCharge) + "\n";
-    // mensaje += "Gracias!";
-    // window.open(`https://wa.me/5491130771142?text=${mensaje}`);
-    setLoadingSendMsg(true);
-    const respuesta = await enviarCarritoWsp(products);
-    console.log("respuesta front");
-    console.log(respuesta);
 
-    if (respuesta.res == true) {
-      setShowModalConfirm(true);
-      //navigate(`/shop`);
+    try {
 
-    } else {
+      setLoadingSendMsg(true);
 
-      alert("Error al enviar el pedido");
+      const telefono = user['https://tecnoclean/api/phone_number'];
+
+      const body = {
+        mailUsuario: user.email,
+        nombreUsuario: user.name,
+        telefono: telefono,
+        articulos: products,
+      }
+
+      const respuesta = await enviarCarritoWsp(body);
+
+
+      if (respuesta != null && respuesta.res == true) {
+        setShowModalConfirm(true);
+
+      } else {
+        toast.error("Error al enviar el pedido, por favor intente nuevamente.");
+      }
+
+    } catch (error) {
+
     }
-
+    // finally{
+    //   setLoadingSendMsg(false);
+    // }
   }
 
   const handleClickCerrarModal = async () => {
@@ -93,7 +126,10 @@ const CartPage = () => {
             </div>
             <div className="mt-5">
               {products.map((item) => (
-                <div key={item._id}>
+                <div
+                  key={item._id}
+                  className="bg-white border rounded-xl shadow-md mb-4 transition-transform hover:scale-[1.01]"
+                >
                   <ItemCardTC item={item} />
                 </div>
               ))}
@@ -101,7 +137,7 @@ const CartPage = () => {
 
             <button
               onClick={() => dispatch(resetCart())}
-              className="py-2 px-10 bg-red-500 text-white font-semibold uppercase mb-4 hover:bg-red-700 duration-300 rounded"
+              className="mt-6 py-2 px-10 bg-red-500 text-white font-semibold uppercase mb-4 hover:bg-red-700 duration-300 rounded"
             >
               Vaciar carrito
             </button>
@@ -138,7 +174,8 @@ const CartPage = () => {
                   <p className="flex items-center justify-between border-[1px] border-gray-400 py-1.5 text-lg px-4 font-medium">
                     Total
                     <span className="font-bold tracking-wide text-lg font-titleFont">
-                      ${totalAmt + shippingCharge}
+                      {/* ${totalAmt + shippingCharge} */}
+                      ${totalAmt.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </p>
                 </div>

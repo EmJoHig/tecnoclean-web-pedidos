@@ -6,6 +6,7 @@ import FooterBottomTC from "./components/FooterBottomTC";
 import HeaderTC from "./components/HeaderTC";
 import HeaderBottomTC from "./components/HeaderBottomTC";
 import SpecialCaseTC from "./components/SpecialCaseTC";
+import ScrollToTopButton from "./components/ScrollToTopButton";
 // import About from "./pages/About/About";
 // import SignIn from "./pages/Account/SignIn";
 // import SignUp from "./pages/Account/SignUp";
@@ -68,6 +69,7 @@ const Layout = () => {
       <Outlet />
       <FooterTC />
       <FooterBottomTC />
+      <ScrollToTopButton />
     </div>
   );
 };
@@ -126,7 +128,11 @@ function App() {
 
                       <Route path="/articulo/:_id" element={<DetalleArticuloPage />}></Route>
 
-                      <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} />
+                      {/* <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} /> */}
+                      <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                        <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} />
+                      </Route>
+                      
                     </Route>
 
                   </Route>

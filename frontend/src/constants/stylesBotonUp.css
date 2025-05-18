@@ -1,0 +1,99 @@
+/* Estilos para el botón de Scroll to Top */
+.scroll-to-top-btn {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  background-color: #ef4444; /* bg-primeColor (rojo) */
+  color: white;
+  padding: 16px;
+  border-radius: 50%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 50;
+  overflow: visible;
+  border: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+}
+
+.scroll-to-top-btn:hover {
+  background-color: #dc2626; /* hover:bg-red-700 */
+  transform: translateY(-2px);
+}
+
+/* Contenedor de burbujas */
+.scroll-to-top-btn .bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+/* Estilos individuales para cada burbuja */
+.scroll-to-top-btn .bubble {
+  position: absolute;
+  bottom: -10px;
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+/* Las burbujas solo aparecen en hover */
+.scroll-to-top-btn:hover .bubble {
+  opacity: 1;
+  animation: rise 1.5s linear infinite;
+}
+
+/* Posiciones y delays de animación para cada burbuja */
+.scroll-to-top-btn .bubble:nth-child(1) {
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.scroll-to-top-btn .bubble:nth-child(2) {
+  left: 40%;
+  animation-delay: 0.2s;
+}
+
+.scroll-to-top-btn .bubble:nth-child(3) {
+  left: 60%;
+  animation-delay: 0.4s;
+}
+
+.scroll-to-top-btn .bubble:nth-child(4) {
+  left: 80%;
+  animation-delay: 0.6s;
+}
+
+.scroll-to-top-btn .bubble:nth-child(5) {
+  left: 50%;
+  animation-delay: 0.8s;
+}
+
+/* Animación de subida de las burbujas */
+@keyframes rise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* Estilos para el ícono */
+.scroll-to-top-btn svg {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  z-index: 10;
+}

@@ -194,7 +194,9 @@ const AdministrarArticulosPage = () => {
           </button>
         </div>
 
-        <div className="flex items-center space-x-2 mb-10">
+
+
+        {/* <div className="flex items-center space-x-2 mb-10">
           <label className="block text-sm font-medium text-gray-700">
             ADJUNTAR:
           </label>
@@ -224,7 +226,7 @@ const AdministrarArticulosPage = () => {
               LIMPIAR
             </button>
           </div>
-        </div>
+        </div> */}
 
 
 

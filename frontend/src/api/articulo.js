@@ -60,12 +60,11 @@ export const getArticulosQueryRequest = async (token, query) => {
 };
 
 
-export const enviarCarritoWspRequest = async (token, carrito) => {
+export const enviarCarritoWspRequest = async (token, bodyCarritoUsuario) => {
     try {
-
         const response = await axios.post(
             `${API_URL}/articulos/enviarCarritoWsp`,
-            { carrito },
+            { bodyCarritoUsuario: bodyCarritoUsuario },
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -73,7 +72,6 @@ export const enviarCarritoWspRequest = async (token, carrito) => {
                 },
             }
         );
-
 
         return response;
     } catch (error) {
@@ -147,6 +145,36 @@ export const getFamiliasRequest = async (token) => {
 };
 
 
+export const getFamiliasConArticulosRequest = async (token) => {
+    try {
+        const response = await axios.get(`${API_URL}/articulos/getFamiliasConArticulos`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching articles by category:", error);
+        throw error;
+    }
+};
+
+
+export const getFraganciasRequest = async (token) => {
+    try {
+        const response = await axios.get(`${API_URL}/articulos/getFragancias`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching fragancias by category:", error);
+        throw error;
+    }
+};
 
 
 // CRUD
@@ -191,8 +219,6 @@ export const getArticuloPorIdRequest = async (token, id) => {
 
 export const updateArticuloRequest = async (token, id, articulo) => {
     try {
-
-        console.log("updateArticuloRequest axios: ", articulo);
 
         const response = await axios.post(`${API_URL}/articulos/editar-articulo`,
             articulo,

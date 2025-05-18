@@ -24,7 +24,7 @@ export const orebiSlice = createSlice({
         state.products.push(action.payload);
       }
       // Dispatch a success toast
-      toast.success("Product added to cart");
+      toast.success("Artículo agregado al carrito");
     },
     increaseQuantity: (state, action) => {
       const item = state.products.find(
@@ -51,7 +51,7 @@ export const orebiSlice = createSlice({
         (item) => item._id !== action.payload
       );
       // Dispatch a success toast
-      toast.error("Product removed from cart");
+      toast.error("Artículo removido del carrito");
     },
     resetCart: (state) => {
       state.products = [];

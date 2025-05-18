@@ -1,187 +1,205 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { HiOutlineMenuAlt4 } from "react-icons/hi";
-import { FaSearch, FaUser, FaCaretDown, FaShoppingCart } from "react-icons/fa";
+import { FaSearch, FaShoppingCart } from "react-icons/fa";
+import { ImPlus, ImMinus } from "react-icons/im";
 import Flex from "../components/designLayouts/Flex";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { paginationItems } from "../constants";
-import imprimante1 from "../assets/images/products/bestSeller/imprimante1.webp";
-import { BsSuitHeartFill } from "react-icons/bs";
+import { toggleCategory } from "../redux/orebiSlice";
 import useIsMobile from "../hooks/useIsMobile";
 import { useArticulos } from "../context/articulosContext";
-import { toggleCategory, filterArticulos } from "../redux/orebiSlice";
 import { API_URL } from "../config";
 
+const gruposColapsables = {
+  "🧴 Limpieza y Desinfección": [
+    "Líquidos", "Desinfectantes", "Desengrasantes", "Quitamanchas", "Jabón Ropa", "Jabones", "Ceras"
+  ],
+  "🧹 Accesorios de Limpieza": [
+    "Trapos y Paños", "Cepillos", "Secadores", "Rejillas", "Esponjas", "Mangos y Cabos", "Guantes"
+  ],
+  "🍽 Descartables y Bolsas": [
+    "Plásticos", "Descartables", "Bolsas"
+  ],
+  "🏠 Ambientadores y Aromas": [
+    "Aromatizantes", "Esencias", "Sahumerios", "Pastillas", "Aerosoles"
+  ],
+  "🧷 Papelería y Cocina": [
+    "Papeles", "Rollos Cocina"
+  ],
+  "🛠 Adhesivos y Pegamentos": [
+    "Pegamentos"
+  ],
+  "🐾 Mascotas y Control de Plagas": [
+    "Mascotas", "Venenos", "Insecticidas"
+  ],
+  "💄 Perfumería y Cuidado Personal": [
+    "Perfumería", "Perfumería y Cuidado Personal"
+  ],
+  "🍽 Bazar y Artículos Variados": [
+    "Bazar", "Artículos Varios", "Tecnoclean"
+  ]
+};
+
+const agruparFamiliasPorGrupo = (familias) => {
+  const resultado = {};
+  Object.keys(gruposColapsables).forEach((grupo) => {
+    resultado[grupo] = familias.filter((familia) =>
+      gruposColapsables[grupo].includes(familia.descripcion)
+    );
+  });
+  return resultado;
+};
+
 const HeaderBottom = () => {
-
   const { articulosQuery, GetArticulosQuery, familias, GetFamilias, updateOffset, GetArticulosPorCategoria } = useArticulos();
-
   const products = useSelector((state) => state.orebiReducer.products);
   const isMobile = useIsMobile();
 
   const [show, setShow] = useState(false);
-  const [showUser, setShowUser] = useState(false);
-  const navigate = useNavigate();
-  const ref = useRef();
-  const searchRef = useRef();
-
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [showSearchBar, setShowSearchBar] = useState(false);
+  const [openGroups, setOpenGroups] = useState({});
 
-  const [showSubCatOne, setShowSubCatOne] = useState(false);
-
+  const navigate = useNavigate();
+  const ref = useRef();
+  const searchRef = useRef();
   const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   document.body.addEventListener("click", (e) => {
-  //     if (ref.current && ref.current.contains(e.target)) {
-  //       setShow(true);
-  //     } else {
-  //       setShow(false);
-  //     }
-  //   });
-  // }, [show, ref]);
-
+  const checkedCategorys = useSelector((state) => state.orebiReducer.checkedCategorys);
 
   useEffect(() => {
     GetFamilias();
   }, []);
-
-  const checkedCategorys = useSelector(
-    (state) => state.orebiReducer.checkedCategorys
-  );
-
-
 
   useEffect(() => {
     GetArticulosPorCategoria(checkedCategorys, null, 0);
     updateOffset(0);
   }, [checkedCategorys]);
 
-
-
-  // Manejador de clics fuera del componente
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setShowSearchBar(false);
-      }
-
-      if (ref.current && !ref.current.contains(e.target)) {
-        setShow(false); // Cierra el menú
-      }
-
+      if (searchRef.current && !searchRef.current.contains(e.target)) setShowSearchBar(false);
+      if (ref.current && !ref.current.contains(e.target)) setShow(false);
     };
-
     document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-
-
-  //useEffects para filtrar los productos en la barra de busqueda
   useEffect(() => {
-    if (searchQuery.length > 1) {
-      GetArticulosQuery(searchQuery);
-    }
+    if (searchQuery.length > 1) GetArticulosQuery(searchQuery);
   }, [searchQuery]);
 
   useEffect(() => {
     setFilteredProducts(articulosQuery);
   }, [articulosQuery]);
 
-
-  //Funcion para manejar el cambio en el input de busqueda
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
     setShowSearchBar(true);
   };
 
-
   const handleToggleCategory = async (category) => {
-
-    // console.log("checkedCategorys antes de dispatch");
-    // console.log(checkedCategorys);
     await dispatch(toggleCategory(category));
+    setShow(false);
   };
 
+  const toggleGroup = (group) => {
+    setOpenGroups((prev) => ({ ...prev, [group]: !prev[group] }));
+  };
+
+  const familiasAgrupadas = familias ? agruparFamiliasPorGrupo(familias) : {};
 
   return (
     <div className="w-full bg-[#F5F5F3] relative">
       <div className="max-w-container mx-auto">
         <Flex className="flex flex-col lg:flex-row items-start lg:items-center justify-between w-full px-4 pb-4 lg:pb-0 h-full lg:h-24">
           {isMobile && (
-            <div
-              onClick={() => setShow(!show)}
-              ref={ref}
-              className="flex h-14 cursor-pointer items-center gap-2 text-primeColor mt-5"
-            >
-              <HiOutlineMenuAlt4 className="w-5 h-5" />
-              <p className="text-[14px] font-normal">Buscar por categoría</p>
+            <>
+              <div
+                onClick={() => setShow(!show)}
+                ref={ref}
+                className="flex h-14 cursor-pointer items-center gap-2 text-primeColor mt-5"
+              >
+                <HiOutlineMenuAlt4 className="w-8 h-8" />
+                <p className="text-[16px] font-semibold">Buscar por categoría</p>
+              </div>
+
+              {/* Chips por debajo */}
+              <div className="flex flex-wrap gap-2 mt-2 ml-10">
+                {checkedCategorys.map((cat) => (
+                  <div
+                    key={cat._id}
+                    className="flex items-center bg-red-500 text-white px-2 py-1 rounded-full text-sm"
+                  >
+                    <span className="mr-1">{cat.descripcion}</span>
+                    <button
+                      className="text-white ml-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleCategory(cat);
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
 
               {show && (
                 <motion.ul
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.5 }}
-                  className="absolute top-14 z-50 bg-[#e00725] w-[70%] text-[#767676] h-auto p-4 pb-6"
+                  className="absolute top-14 z-50 bg-[#e00725] w-[90%] text-[#fff] p-4 rounded-lg"
                 >
-                  {/* <Link to={"category/imprimante"}>
-                    <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                      Imprimante mobile
-                    </li>
-                  </Link>
-
-                  <Link to={"category/ancre"}>
-                    <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                      ancre mobile
-                    </li>
-                  </Link>
-                  <Link to={"category/Ruban"}>
-                    <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                      ruban mobile
-                    </li>
-                  </Link>
-                  <Link to={"category/Bac"}>
-                    <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                      Bac de dechet mobile
-                    </li>
-                  </Link> */}
-
-                  <ul className="flex flex-col gap-4 text-sm lg:text-base text-[#fff]">
-                    {familias && familias.map((item) => (
-                      <li
-                        key={item.codigo}
-                        className="border-b-[1px] border-b-[#F0F0F0] pb-2 flex items-center gap-2 hover:text-[#fff] hover:border-gray-400 duration-300"
-                        onClick={() => handleToggleCategory(item)}
+                  {Object.keys(familiasAgrupadas).map((grupo) => (
+                    <div key={grupo} className="mb-3">
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleGroup(grupo);
+                        }}
+                        className="flex justify-between items-center cursor-pointer text-lg font-semibold py-2"
                       >
-                        <input
-                          type="checkbox"
-                          className="cursor-pointer"
-                          id={item._id}
-                          checked={checkedCategorys.some((b) => b._id === item._id)}
-                          onChange={() => handleToggleCategory(item)}
-                        />
-                        {item.descripcion}
-                        {item.icons && (
-                          <span
-                            // onClick={() => setShowSubCatOne(!showSubCatOne)}
-                            className="text-[10px] lg:text-xs cursor-pointer text-gray-400 hover:text-[#e00725] duration-300"
-                          >
-                            <ImPlus />
-                          </span>
+                        <span>{grupo}</span>
+                        {openGroups[grupo] ? (
+                          <ImMinus className="text-xl" />
+                        ) : (
+                          <ImPlus className="text-xl" />
                         )}
-                      </li>
-                    ))}
-                  </ul>
-
+                      </div>
+                      {openGroups[grupo] && (
+                        <ul className="ml-4 mt-2">
+                          {familiasAgrupadas[grupo].map((item) => (
+                            <li
+                              key={item.codigo}
+                              className="flex items-center gap-3 py-2 cursor-pointer text-base"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleCategory(item);
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                className="cursor-pointer w-5 h-5"
+                                checked={checkedCategorys.some((b) => b._id === item._id)}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleCategory(item);
+                                }}
+                              />
+                              {item.descripcion}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
                 </motion.ul>
               )}
-            </div>
+            </>
           )}
           <div className="mb-6 mt-7 relative w-full lg:w-[600px] h-[50px] text-base text-primeColor bg-white flex items-center gap-2 justify-between px-6 rounded-xl">
             <input
@@ -189,7 +207,7 @@ const HeaderBottom = () => {
               type="text"
               onChange={handleSearch}
               value={searchQuery}
-              placeholder="Buscar productos..."
+              placeholder="Buscar articulo ..."
             />
             <FaSearch className="w-5 h-5" />
             {searchQuery && showSearchBar && (
@@ -197,95 +215,55 @@ const HeaderBottom = () => {
                 ref={searchRef}
                 className={`w-full mx-auto h-96 bg-white top-16 absolute left-0 z-50 overflow-y-scroll shadow-2xl scrollbar-hide cursor-pointer`}
               >
-                {searchQuery &&
-                  filteredProducts &&
-                  filteredProducts.map((item) => (
-                    <div
-                      onClick={() =>
-                        navigate(`/articulo/${item._id}`,
-                          {
-                            state: {
-                              item: item,
-                            },
-                          }
-                        ) &
-                        setShowSearchBar(true) &
-                        setSearchQuery("")
-                      }
-                      key={item._id}
-                      className="max-w-[600px] h-28 bg-gray-100 mb-3 flex items-center gap-3"
-                    >
-                      {/* <img className="w-24" src={imprimante1} alt="productImg" /> */}
-                      {item.imagen ? (
-                        <img
-                          className="w-[25%]"
-                          src={`${API_URL}${item.imagen.replace(/ /g, "%20")}`}
-                          alt="productImg"
-                        />
-                      ) : (
-                        <></>
-                      )}
-
-                      <div className="flex flex-col gap-1">
-                        {/* <p className="font-semibold text-lg">
-                          {item.codigo}
-                        </p> */}
-                        <p className="text-[20px]">
-                          {item.descripcion.length > 100
-                            ? `${item.descripcion.slice(0, 100)}...`
-                            : item.descripcion}
-                        </p>
-                        <p className="text-lg">
-                          Precio: {" "}
-                          <span className="text-primeColor font-semibold">
-                            $ {item.precio.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                        </p>
-                      </div>
+                {filteredProducts.map((item) => (
+                  <div
+                    key={item._id}
+                    onClick={() => {
+                      navigate(`/articulo/${item._id}`, { state: { item } });
+                      setShowSearchBar(false);
+                      setSearchQuery("");
+                    }}
+                    className="max-w-[600px] h-28 bg-gray-100 mb-3 flex items-center gap-3 pl-3"
+                  >
+                    {item.imagen && (
+                      <img
+                        // className="w-[25%]"
+                        className="h-full max-h-24 object-contain"
+                        src={`${API_URL}${item.imagen.replace(/ /g, "%20")}`}
+                        alt="productImg"
+                      />
+                    )}
+                    <div className="flex flex-col gap-1">
+                      <p className="text-[20px]">
+                        {item.descripcion.length > 100
+                          ? `${item.descripcion.slice(0, 100)}...`
+                          : item.descripcion}
+                      </p>
+                      <p className="text-lg">
+                        Precio:{" "}
+                        <span className="text-primeColor font-semibold">
+                          ${" "}
+                          {item.precio.toLocaleString("es-ES", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </p>
                     </div>
-                  ))}
+                  </div>
+                ))}
               </div>
             )}
           </div>
           <div className="flex gap-4 mt-6 mb-6 lg:mt-0 items-center pr-6 cursor-pointer relative">
-            {/* <div onClick={() => setShowUser(!showUser)} className="flex">
-              <FaUser />
-              <FaCaretDown />
-            </div> */}
-            {/* {showUser && (
-              <motion.ul
-                initial={{ y: 30, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="absolute top-6 left-0 z-50 bg-primeColor w-44 text-[#767676] h-auto p-4 pb-6"
-              >
-                <Link to="/signin">
-                  <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                    Login
-                  </li>
-                </Link>
-                <Link onClick={() => setShowUser(false)} to="/signup">
-                  <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                    Sign Up
-                  </li>
-                </Link>
-                <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                  Profile
-                </li>
-                <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400  hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                  Others
-                </li>
-              </motion.ul>
-            )} */}
             <Link to="/cart">
               <div className="relative top-1 mb-1">
                 <FaShoppingCart />
                 <span className="absolute font-titleFont top-3 -right-2 text-xs w-4 h-4 flex items-center justify-center rounded-full bg-primeColor text-white">
-                  {products.length > 0 ? products.length : 0}
+                  {products.length}
                 </span>
               </div>
             </Link>
-            {/* <BsSuitHeartFill /> */}
           </div>
         </Flex>
       </div>

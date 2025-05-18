@@ -22,6 +22,8 @@ const ProductTC = (props) => {
   const navigate = useNavigate();
   const productItem = props;
 
+  const validCodes = ["15205", "7790126120210", "7790126137010"];
+
 
   const handleProductDetails = () => {
 
@@ -59,20 +61,47 @@ const ProductTC = (props) => {
         {/* Controles de carrito y wishlist */}
         <div className="absolute top-4 right-4 z-30">
           <ul className="flex gap-4">
-          <li
-              onClick={() =>
-                dispatch(
-                  addToCart({
-                    _id: props._id,
-                    name: props.descripcion,
-                    quantity: 1,
-                    imagen: props.imagen,
-                    badge: props.badge,
-                    price: props.precio,
-                    colors: props.color,
-                  })
-                )
-              }
+            <li
+              // onClick={() =>
+              //   dispatch(
+              //     addToCart({
+              //       _id: props._id,
+              //       codigo: props.codigo,
+              //       name: props.descripcion,
+              //       quantity: 1,
+              //       imagen: props.imagen,
+              //       badge: props.badge,
+              //       price: props.precio,
+              //       colors: props.color,
+              //       fragancia: "tu mami",
+              //     })
+              //   )
+              // }
+              onClick={() => {
+                if (validCodes.includes(props.codigo)) {
+                  // Redirigir al detalle si el código es uno de los especiales
+                  navigate(`/articulo/${rootId}`, {
+                    state: {
+                      item: productItem,
+                    },
+                  });
+                } else {
+                  // Agregar al carrito normalmente
+                  dispatch(
+                    addToCart({
+                      _id: props._id,
+                      codigo: props.codigo,
+                      name: props.descripcion,
+                      quantity: 1,
+                      imagen: props.imagen,
+                      badge: props.badge,
+                      price: props.precio,
+                      colors: props.color,
+                      fragancia: "",
+                    })
+                  );
+                }
+              }}
               className="w-[60px] h-[60px] bg-[#16a34a] text-[#fff] hover:text-[#facc15] cursor-pointer text-lg rounded-full flex justify-center items-center hover:bg-[#16a34a] duration-100 active:scale-90">
               <FaShoppingCart className="text-4xl" />
             </li>
