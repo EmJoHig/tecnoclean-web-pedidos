@@ -6,7 +6,7 @@ import whatsapp from "../src/libs/whatsapp.js";
 async function main() {
   await connectDB();
    
- // tst produccion?
+ // tst produccion ya anda todo test de carpeta imagenes 
   await  whatsapp.initialize();
 
   
