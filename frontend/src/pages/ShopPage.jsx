@@ -88,7 +88,7 @@ const ShopPage = () => {
   };
 
 
-
+ 
   //probar que cosa no anda si  descomento esto
   // useEffect(() => {
   //   // Asegúrate de que 'articulos' esté disponible antes de despachar
