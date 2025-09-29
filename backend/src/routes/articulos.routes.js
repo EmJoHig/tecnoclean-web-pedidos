@@ -12,6 +12,8 @@ import {
   EnviarCarritoWsp,
   ImportarArticulosExcel,
   ActualizarPreciosImportacionExcel,
+  ActualizarPreciosExcelPorCodigo,
+  ActualizarPreciosAgenteN8N,
   CreateArticulo,
   GetArticuloById,
   UpdateArticulo,
@@ -118,7 +120,14 @@ router.post("/articulos/enviarCarritoWsp", jwtCheck, EnviarCarritoWsp);
 
 router.post("/articulos/importar-articulos-excel", jwtCheck, uploadExcel.single("file"), ImportarArticulosExcel);
 
+// Actualizar precios desde Excel, VERISON VIEJA
 router.post("/articulos/update-precios-importar-excel", jwtCheck, uploadExcel.single("file"), ActualizarPreciosImportacionExcel);
+
+// ¡¡¡  Actualizar precios desde Excel, VERSION NUEVA !!!!
+router.post("/articulos/update-precios-excel-por-codigo", jwtCheck, uploadExcel.single("file"), ActualizarPreciosExcelPorCodigo);
+
+// endpoint llamado por N8N que cambia precio segun codigo del sistema a mi web pedidos
+router.post("/articulos/update-precios-agente-n8n", jwtCheck, ActualizarPreciosAgenteN8N);
 
 
 

@@ -1,11 +1,13 @@
 import Articulo from "../models/Articulo.js";
 import Familia from "../models/Familia.js";
 import Fragancia from "../models/Fragancia.js";
+import GrupoFamilia from "../models/GrupoFamilia.js";
 // import multer from "multer";
 import fs from "fs";
 // import express from 'express';
 // import { type } from "os";
-import * as XLSX from "xlsx"; // Cambia esto
+// import * as XLSX from "xlsx"; // Cambia esto
+import xlsx from "xlsx";
 
 import whatsapp from "../libs/whatsapp.js";
 
@@ -119,13 +121,16 @@ export const GetFamilias = async (req, res) => {
 // GET FAMILIAS CON ARTICULOS
 export const GetFamiliasConArticulos = async (req, res) => {
   try {
-    const familias = await Familia.find();
-
+    const familias = await Familia.find().populate("grupoId");
     const familiasConArticulos = [];
 
-    if(familias != null && familias.length > 0) {
+    if (familias != null && familias.length > 0) {
       for (const familia of familias) {
-        const count = await Articulo.countDocuments({ familiaArticulo: familia._id });
+        // const count = await Articulo.countDocuments({ familiaArticulo: familia._id });
+        const count = await Articulo.countDocuments({
+          familiaArticulo: familia._id,
+          stock: { $gt: 0 }  // <-- filtro para stock mayor a cero
+        });
         if (count > 0) {
           familiasConArticulos.push(familia);
         }
@@ -483,7 +488,7 @@ export const CreateArticulo = async (req, res) => {
     const imagenPath = req.file ? req.file : null;
 
     let imagenFilename = null;
-    
+
     if (imagenPath) {
       imagenFilename = `/uploads/images/${imagenPath.filename}`; // Ruta de la imagen en el servidor
     }
@@ -497,7 +502,7 @@ export const CreateArticulo = async (req, res) => {
       descripcion: descripcion,
       precio: precio,
       stock: stock,
-      familiaArticulo: familia, 
+      familiaArticulo: familia,
       imagen: imagenFilename
     });
 
@@ -544,7 +549,7 @@ export const UpdateArticulo = async (req, res) => {
     const imagenPath = req.file ? req.file : null;
 
     //let imagenFilename = null;
-    
+
     // if (imagenPath) {
     //   imagenFilename = `/uploads/images/${imagenPath.filename}`; // Ruta de la imagen en el servidor
     // }
@@ -564,7 +569,7 @@ export const UpdateArticulo = async (req, res) => {
       return res.status(404).json({ message: "Artículo no encontrado" });
     }
 
-    let imagenFilename = articuloExistente.imagen; 
+    let imagenFilename = articuloExistente.imagen;
 
     // Si se proporciona una nueva imagen, actualiza la ruta de la imagen
     if (imagenPath) {
@@ -606,5 +611,148 @@ export const DeleteArticulo = async (req, res) => {
   } catch (error) {
     console.error("Error al eliminar el artículo:", error);
     res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+
+
+
+// ENDPOINT LLAMADO POR N8N QUE CAMBIA PRECIO SEGUN CODIGO DEL SISTEMA A MI WEB PEDIDOS
+// n8n envia por body los articulos con codigo, descripcion y precio que llegan al mail y los actualiza en mi web pedidos
+
+export const ActualizarPreciosAgenteN8N = async (req, res) => {
+  const { data: productos } = req.body;
+
+  if (!productos || !Array.isArray(productos) || productos.length === 0) {
+    return res.status(400).json({ error: "No se enviaron productos en el body" });
+  }
+
+  const resultados = [];
+
+  for (const producto of productos) {
+    const codigo = producto.CODIGO?.toString().trim() || "";
+
+    if (!codigo) {
+      resultados.push({
+        codigo: null,
+        mensaje: "Producto sin código, se omitió",
+      });
+      continue;
+    }
+
+    try {
+      const productoEnDB = await Articulo.findOne({ codigo });
+
+      if (productoEnDB) {
+        productoEnDB.precio = parseFloat(producto.PRECIO) || 0;
+        await productoEnDB.save();
+
+        resultados.push({
+          codigo,
+          mensaje: "Precio actualizado",
+          producto: {
+            descripcion: productoEnDB.descripcion,
+            precio: productoEnDB.precio,
+          },
+        });
+      } else {
+        resultados.push({
+          codigo,
+          mensaje: "Producto no encontrado en la base de datos",
+        });
+      }
+    } catch (error) {
+      console.error(`Error al actualizar el producto con código ${codigo}:`, error);
+      resultados.push({
+        codigo,
+        mensaje: "Error al actualizar el producto",
+        error: error.message,
+      });
+    }
+  }
+
+  res.status(200).json({
+    message: "Actualización de precios completada",
+    data: resultados,
+  });
+};
+
+
+
+
+
+// ENDPOINT PARA ACTUALIZAR PRECIOS DE ARTICULOS POR EXCEL SEGUN CODIGO DEL SISTEMA A MI WEB PEDIDOS
+
+export const ActualizarPreciosExcelPorCodigo = async (req, res) => {
+  const formDataExcel = req.file;
+
+  if (!formDataExcel) {
+    return res.status(400).json({ error: "No se subió ningún archivo" });
+  }
+
+  try {
+    // Leer el archivo Excel
+    const workbook = xlsx.readFile(formDataExcel.path);
+    const sheetName = workbook.SheetNames[0]; // Leer la primera hoja
+    const worksheet = workbook.Sheets[sheetName];
+    const data = xlsx.utils.sheet_to_json(worksheet);
+
+    // Mapear datos desde el Excel
+    const productos = data.map(item => ({
+      codigo: item.CODIGO?.toString().trim() || "",
+      descripcion: item.DETALLE?.toString().trim() || "",
+      precioVenta: parseFloat(item["PRECIO VENTA"]) || 0,
+    }));
+
+    const resultados = [];
+
+    for (const producto of productos) {
+      if (!producto.codigo) {
+        resultados.push({
+          codigo: null,
+          mensaje: "Producto sin código, se omitió",
+        });
+        continue;
+      }
+
+      try {
+        const productoEnDB = await Articulo.findOne({ codigo: producto.codigo });
+
+        if (productoEnDB) {
+          productoEnDB.precio = producto.precioVenta;
+          await productoEnDB.save();
+
+          resultados.push({
+            codigo: producto.codigo,
+            mensaje: "Precio actualizado",
+            producto: {
+              descripcion: productoEnDB.descripcion,
+              precio: productoEnDB.precio,
+            },
+          });
+        } else {
+          resultados.push({
+            codigo: producto.codigo,
+            mensaje: "Producto no encontrado en la base de datos",
+          });
+        }
+      } catch (error) {
+        console.error(`Error al actualizar el producto con código ${producto.codigo}:`, error);
+        resultados.push({
+          codigo: producto.codigo,
+          mensaje: "Error al actualizar el producto",
+          error: error.message,
+        });
+      }
+    }
+
+    res.status(200).json({
+      message: "Actualización de precios completada",
+      data: resultados,
+    });
+
+  } catch (error) {
+    console.error("Error al procesar el archivo Excel:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 };
