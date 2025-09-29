@@ -623,6 +623,8 @@ export const DeleteArticulo = async (req, res) => {
 export const ActualizarPreciosAgenteN8N = async (req, res) => {
   const { data: productos } = req.body;
 
+ // console.log("Productos recibidos para actualización de precios:", productos);
+
   if (!productos || !Array.isArray(productos) || productos.length === 0) {
     return res.status(400).json({ error: "No se enviaron productos en el body" });
   }
@@ -644,7 +646,7 @@ export const ActualizarPreciosAgenteN8N = async (req, res) => {
       const productoEnDB = await Articulo.findOne({ codigo });
 
       if (productoEnDB) {
-        productoEnDB.precio = parseFloat(producto.PRECIO) || 0;
+        productoEnDB.precio = parseFloat(producto.PRECIOVENTA) || 0;
         await productoEnDB.save();
 
         resultados.push({
