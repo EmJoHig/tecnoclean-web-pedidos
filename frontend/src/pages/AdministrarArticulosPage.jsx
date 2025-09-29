@@ -19,6 +19,7 @@ const AdministrarArticulosPage = () => {
     GetArticulosPorCategoria,
     getArticulos,
     updatePreciosImportarExcel,
+    updatePreciosImportarExcelPorCodigos,
     GetFamilias,
     createArticulo,
     updateArticulo,
@@ -128,7 +129,7 @@ const AdministrarArticulosPage = () => {
 
       // console.log("formData", formData);
 
-      const response = await updatePreciosImportarExcel(formData); // Llamar a la función con el FormData
+      const response = await updatePreciosImportarExcelPorCodigos(formData); // Llamar a la función con el FormData
 
       if (response) {
         //console.log("response data front", response.data);
@@ -196,7 +197,7 @@ const AdministrarArticulosPage = () => {
 
 
 
-        {/* <div className="flex items-center space-x-2 mb-10">
+        <div className="flex items-center space-x-2 mb-10">
           <label className="block text-sm font-medium text-gray-700">
             ADJUNTAR:
           </label>
@@ -226,7 +227,7 @@ const AdministrarArticulosPage = () => {
               LIMPIAR
             </button>
           </div>
-        </div> */}
+        </div>
 
 
 

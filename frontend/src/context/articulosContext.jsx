@@ -10,6 +10,7 @@ import {
   enviarCarritoWspRequest,
   importarArticulosExcelRequest,
   updatePreciosImportarExcelRequest,
+  updatePreciosImportarExcelPorCodigosRequest,
   //crud
   createArticuloRequest,
   getArticuloPorIdRequest,
@@ -254,7 +255,7 @@ const GetFragancias = async () => {
     }
   };
 
-  // importar update precios
+  // importar update precios version vieja
   const updatePreciosImportarExcel = async (formDataExcel) => {
     try {
 
@@ -372,6 +373,31 @@ const GetFragancias = async () => {
   };
 
 
+  // importar update precios por codigos existentes en bd ULTIMA VERSION 
+  const updatePreciosImportarExcelPorCodigos = async (formDataExcel) => {
+    try {
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
+      setLoading(true);
+
+      const res = await updatePreciosImportarExcelPorCodigosRequest(token, formDataExcel);
+      if (res) {
+        return res.data;
+      } else {
+        console.log("Error en updatePreciosImportarExcelPorCodigos");
+        return res.data;
+      }
+    } catch (error) {
+      console.log(error);
+      throw new Error("Error en updatePreciosImportarExcelPorCodigos");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   return (
@@ -397,7 +423,8 @@ const GetFragancias = async () => {
         updateOffset,
         enviarCarritoWsp,
         importarArticulosExcel,
-        updatePreciosImportarExcel,
+        updatePreciosImportarExcel,// version vieja
+        updatePreciosImportarExcelPorCodigos,// version nueva 
       }}
     >
       {children}

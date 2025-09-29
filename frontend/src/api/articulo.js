@@ -259,3 +259,27 @@ export const deleteArticuloRequest = async (token, id) => {
         throw error;
     }
 };
+
+
+
+// importar update precios POR CODIGO ULTIMA VERSION
+export const updatePreciosImportarExcelPorCodigosRequest = async (token, formDataExcel) => {
+    try {
+
+        const response = await axios.post(
+            `${API_URL}/articulos/update-precios-excel-por-codigo`,
+            formDataExcel,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching getArticulosQueryRequest: ", error);
+        throw error;
+    }
+};
