@@ -34,7 +34,7 @@
     "puppeteer": "^23.11.1",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
-    "whatsapp-web.js": "^1.16.4-alpha.3",
+    "whatsapp-web.js": "^1.34.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

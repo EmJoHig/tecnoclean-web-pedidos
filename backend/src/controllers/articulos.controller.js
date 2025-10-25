@@ -224,34 +224,61 @@ const enviarMensaje = (chatId, mensaje) => {
 };
 
 
+
+// VERSION 2 SIN LIBRERIA, CON API WHATSSAP
 export const EnviarCarritoWsp = async (req, res) => {
   try {
     const { bodyCarritoUsuario } = req.body;
     const mensajeWSP = generarMensaje(bodyCarritoUsuario);
-    const tel = '+542215937093'
-    const chatId = tel.substring(1) + "@c.us";
+    const tel = '542215937093'; // sin el + adelante
 
-    const number_details = await whatsapp.getNumberId(chatId);
+    // Codificamos el mensaje para URL
+    const mensajeCodificado = encodeURIComponent(mensajeWSP);
 
-    if (number_details) {
+    // Armamos el link directo a WhatsApp
+    const linkWsp = `https://wa.me/${tel}?text=${mensajeCodificado}`;
 
-      enviarMensaje(chatId, mensajeWSP)
-        .then((respuesta) => {
-          //console.log(respuesta);
-          res.json({ mensaje: respuesta, res: true });
-        })
-        .catch((error) => {
-          //console.error(error);
-          res.status(500).json({ res: false, error: error.message || error });
-        });
-    } else {
-      res.json({ res: false })
-    }
+    // Lo devolvés al frontend
+    res.json({ link: linkWsp, res: true });
+
   } catch (error) {
-    console.error("Error fetching articles by category:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error generando link de WhatsApp:", error);
+    res.status(500).json({ res: false, error: "Error interno del servidor" });
   }
 };
+
+
+
+
+// VERSION 1 CON LIBRERIA
+// export const EnviarCarritoWsp = async (req, res) => {
+//   try {
+//     const { bodyCarritoUsuario } = req.body;
+//     const mensajeWSP = generarMensaje(bodyCarritoUsuario);
+//     const tel = '+542215937093'
+//     const chatId = tel.substring(1) + "@c.us";
+
+//     const number_details = await whatsapp.getNumberId(chatId);
+
+//     if (number_details) {
+
+//       enviarMensaje(chatId, mensajeWSP)
+//         .then((respuesta) => {
+//           //console.log(respuesta);
+//           res.json({ mensaje: respuesta, res: true });
+//         })
+//         .catch((error) => {
+//           //console.error(error);
+//           res.status(500).json({ res: false, error: error.message || error });
+//         });
+//     } else {
+//       res.json({ res: false })
+//     }
+//   } catch (error) {
+//     console.error("Error fetching articles by category:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 
 
