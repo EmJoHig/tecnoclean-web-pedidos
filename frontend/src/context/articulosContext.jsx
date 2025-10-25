@@ -155,7 +155,7 @@ export function ArticuloProvider({ children }) {
       setLoading(true);
       const res = await enviarCarritoWspRequest(token, bodyCarritoUsuario);
 
-      if (res) {
+      if (res && res.data) {
         return res.data;
       } else {
         console.log("Error en enviarCarritoWsp");

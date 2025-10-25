@@ -103,29 +103,57 @@ const HeaderTC = () => {
                     //   <li>{title}</li>
                     // </NavLink>
                   ))} */}
-                  <NavLink
+
+
+
+
+
+
+                  {/* <NavLink
                     key={1}
                     className="flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base text-[#fff] hover:underline underline-offset-[4px] decoration-[1px] hover:text-[#262626] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
                     to={"/"}
                     state={{ data: location.pathname.split("/")[1] }}
+                  > */}
+                  <NavLink
+                    key={1}
+                    to="/"
+                    className={({ isActive }) =>
+                      `flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base
+                      ${isActive ? "text-white-400 underline underline-offset-[4px] decoration-[2px]" : "text-white"} 
+                      hover:text-white-400 underline-offset-[4px] decoration-[1px]
+                      md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0`
+                    }
+                    state={{ data: location.pathname.split("/")[1] }}
                   >
-                    <li>Home</li>
+
+                    <li>Inicio</li>
                   </NavLink>
 
                   {isAuthenticated ? (
                     <>
                       <NavLink
                         key={2}
-                        className="flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base text-[#fff] hover:underline underline-offset-[4px] decoration-[1px] hover:text-[#262626] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
-                        to={"/shop"}
+                        to="/shop"
                         state={{ data: location.pathname.split("/")[1] }}
+                        className={({ isActive }) =>
+                          `flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base
+                          ${isActive ? "text-white-400 underline underline-offset-[4px] decoration-[1px]" : "text-white"} 
+                          hover:text-white-400 underline-offset-[4px] decoration-[2px]
+                          md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0`
+                        }
                       >
                         <li>Tienda</li>
                       </NavLink>
                       {isAdmin && (
                         <NavLink
                           key={3}
-                          className="flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base text-[#fff] hover:underline underline-offset-[4px] decoration-[1px] hover:text-[#262626] md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
+                          className={({ isActive }) =>
+                            `flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base
+                            ${isActive ? "text-white-400 underline underline-offset-[4px] decoration-[1px]" : "text-white"} 
+                            hover:text-white-400 underline-offset-[4px] decoration-[2px]
+                            md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0`
+                          }                         
                           to={"/administrar-articulos"}
                           state={{ data: location.pathname.split("/")[1] }}
                         >
@@ -134,12 +162,20 @@ const HeaderTC = () => {
                       )}
                       <button
                         onClick={logout}
-                        className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-200"
+                        className="block w-full text-center px-4 py-2 bg-white text-red-800 font-semibold rounded-lg shadow-md hover:bg-[#c00620] hover:text-white hover:shadow-lg transition-all duration-200 ease-in-out"
                       >
                         Cerrar sesión
                       </button>
                     </>
-                  ) : null}
+                  ) : 
+                  (
+                    <button
+                      onClick={() => loginWithRedirect()}
+                      className="block w-full text-center px-4 py-2 bg-white text-red-800 font-semibold rounded-lg shadow-md hover:bg-[#c00620] hover:text-white hover:shadow-lg transition-all duration-200 ease-in-out"
+                    >
+                      Iniciar sesión
+                    </button>
+                  )}
 
                 </>
               </motion.ul>
@@ -162,7 +198,7 @@ const HeaderTC = () => {
                       src={logomobiletc2}
                       alt="logoLight"
                     />
-                    <ul className="text-gray-200 flex flex-col gap-2">
+                    <ul className="text-gray-200 flex flex-col gap-5">
                       <li
                         className="font-normal hover:font-bold items-center text-lg text-gray-200 hover:underline underline-offset-[4px] decoration-[1px] hover:text-white md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
                         key="1"
@@ -172,10 +208,12 @@ const HeaderTC = () => {
                           // state={{ data: location.pathname.split("/")[1] }}
                           onClick={() => setSidenav(false)}
                         >
-                          Home
+                          Inicio
                         </NavLink>
                       </li>
 
+                      {isAuthenticated ? (
+                        <>
                       <li
                         className="font-normal hover:font-bold items-center text-lg text-gray-200 hover:underline underline-offset-[4px] decoration-[1px] hover:text-white md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
                         key="2"
@@ -189,20 +227,40 @@ const HeaderTC = () => {
                         </NavLink>
                       </li>
 
-                      {isAdmin && (
+                      <li>
+                        <button
+                          onClick={logout}
+                          className="font-normal hover:font-bold items-center text-lg text-gray-200 hover:underline underline-offset-[4px] decoration-[1px] hover:text-white md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
+                        >
+                          Cerrar sesión
+                        </button>
+                      </li>
+
+                      {/* {isAdmin && (
                         <li
                           className="font-normal hover:font-bold items-center text-lg text-gray-200 hover:underline underline-offset-[4px] decoration-[1px] hover:text-white md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
                           key="3"
                         >
                           <NavLink
                             to="/administrar-articulos"
-                            // state={{ data: location.pathname.split("/")[1] }}
                             onClick={() => setSidenav(false)}
                           >
                             Admin Articulos
                           </NavLink>
                         </li>
-                      )}
+                      )} */}
+                      </>
+                      ) : (
+                        <li>
+                          <button
+                              onClick={() => loginWithRedirect()}
+                              className="font-normal hover:font-bold items-center text-lg text-gray-200 hover:underline underline-offset-[4px] decoration-[1px] hover:text-white md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
+                            >
+                              Iniciar sesión
+                            </button>
+                        </li>
+                      )
+                    }
                     </ul>
                     {/* <div className="mt-4">
                       <h1

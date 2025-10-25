@@ -68,7 +68,23 @@ const CategoryTC = () => {
 
   return (
     <div className="w-full">
-      <NavTitleTC title="Categorias" icons={false} />
+      {/* <NavTitleTC title="Categorias" icons={false} /> */}
+
+      {/* nuevito */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-[#262626]">Categorías</h2>
+        {checkedCategorys.length > 0 && (
+          <button
+            onClick={() => {
+              checkedCategorys.forEach((cat) => dispatch(toggleCategory(cat)));
+            }}
+            className="text-sm text-[#e00725] hover:text-[#c00620] font-medium underline underline-offset-2"
+          >
+            Limpiar todo
+          </button>
+        )}
+      </div>
+      {/* nuevito */}
 
       {/* Píldoras de categorías seleccionadas */}
       {checkedCategorys.length > 0 && (

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { HiOutlineMenuAlt4 } from "react-icons/hi";
 import { FaSearch, FaShoppingCart } from "react-icons/fa";
+import { IoMdClose } from "react-icons/io";
 import { ImPlus, ImMinus } from "react-icons/im";
 import Flex from "../components/designLayouts/Flex";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,35 +12,7 @@ import useIsMobile from "../hooks/useIsMobile";
 import { useArticulos } from "../context/articulosContext";
 import { API_URL } from "../config";
 
-const gruposColapsables = {
-  "🧴 Limpieza y Desinfección": [
-    "Líquidos", "Desinfectantes", "Desengrasantes", "Quitamanchas", "Jabón Ropa", "Jabones", "Ceras"
-  ],
-  "🧹 Accesorios de Limpieza": [
-    "Trapos y Paños", "Cepillos", "Secadores", "Rejillas", "Esponjas", "Mangos y Cabos", "Guantes"
-  ],
-  "🍽 Descartables y Bolsas": [
-    "Plásticos", "Descartables", "Bolsas"
-  ],
-  "🏠 Ambientadores y Aromas": [
-    "Aromatizantes", "Esencias", "Sahumerios", "Pastillas", "Aerosoles"
-  ],
-  "🧷 Papelería y Cocina": [
-    "Papeles", "Rollos Cocina"
-  ],
-  "🛠 Adhesivos y Pegamentos": [
-    "Pegamentos"
-  ],
-  "🐾 Mascotas y Control de Plagas": [
-    "Mascotas", "Venenos", "Insecticidas"
-  ],
-  "💄 Perfumería y Cuidado Personal": [
-    "Perfumería", "Perfumería y Cuidado Personal"
-  ],
-  "🍽 Bazar y Artículos Variados": [
-    "Bazar", "Artículos Varios", "Tecnoclean"
-  ]
-};
+
 
 const agruparFamiliasPorGrupo = (familias) => {
   const resultado = {};
@@ -52,7 +25,7 @@ const agruparFamiliasPorGrupo = (familias) => {
 };
 
 const HeaderBottom = () => {
-  const { articulosQuery, GetArticulosQuery, familias, GetFamilias, updateOffset, GetArticulosPorCategoria } = useArticulos();
+  const { articulosQuery, GetArticulosQuery, familias, GetFamiliasConArticulos, updateOffset, GetArticulosPorCategoria } = useArticulos();
   const products = useSelector((state) => state.orebiReducer.products);
   const isMobile = useIsMobile();
 
@@ -67,11 +40,31 @@ const HeaderBottom = () => {
   const searchRef = useRef();
   const dispatch = useDispatch();
 
+  const [familiasAgrupadas, setFamiliasAgrupadas] = useState({});
+
   const checkedCategorys = useSelector((state) => state.orebiReducer.checkedCategorys);
 
   useEffect(() => {
-    GetFamilias();
+    GetFamiliasConArticulos();
   }, []);
+
+  // Agrupar familias por grupo dentro de useEffect y manejar loading
+  useEffect(() => {
+    if (!familias) return;
+    const resultado = {};
+    familias.forEach((familia) => {
+      const grupoDescripcion = familia.grupoId?.descripcion;
+      if (!grupoDescripcion || grupoDescripcion.trim() === "") return;
+
+      if (!resultado[grupoDescripcion]) {
+        resultado[grupoDescripcion] = [];
+      }
+      resultado[grupoDescripcion].push(familia);
+    });
+    setFamiliasAgrupadas(resultado);
+  }, [familias]);
+
+
 
   useEffect(() => {
     GetArticulosPorCategoria(checkedCategorys, null, 0);
@@ -109,7 +102,7 @@ const HeaderBottom = () => {
     setOpenGroups((prev) => ({ ...prev, [group]: !prev[group] }));
   };
 
-  const familiasAgrupadas = familias ? agruparFamiliasPorGrupo(familias) : {};
+  // const familiasAgrupadas = familias ? agruparFamiliasPorGrupo(familias) : {};
 
   return (
     <div className="w-full bg-[#F5F5F3] relative">
@@ -117,17 +110,46 @@ const HeaderBottom = () => {
         <Flex className="flex flex-col lg:flex-row items-start lg:items-center justify-between w-full px-4 pb-4 lg:pb-0 h-full lg:h-24">
           {isMobile && (
             <>
-              <div
+              {/* viejito */}
+              {/* <div
                 onClick={() => setShow(!show)}
                 ref={ref}
                 className="flex h-14 cursor-pointer items-center gap-2 text-primeColor mt-5"
               >
                 <HiOutlineMenuAlt4 className="w-8 h-8" />
                 <p className="text-[16px] font-semibold">Buscar por categoría</p>
+              </div> */}
+
+              {/* nuevito */}
+
+              <div
+                ref={ref}
+                className="flex h-14 items-center gap-4 text-primeColor mt-5"
+              >
+                <div
+                  onClick={() => setShow(!show)}
+                  className="flex items-center gap-2 cursor-pointer flex-1 min-w-0"
+                >
+                  <HiOutlineMenuAlt4 className="w-8 h-8 flex-shrink-0" />
+                  <p className="text-[16px] font-semibold truncate">Buscar por categoría</p>
+                </div>
+
+                {checkedCategorys.length > 0 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      checkedCategorys.forEach((cat) => dispatch(toggleCategory(cat)));
+                    }}
+                    className="text-sm text-[#e00725] hover:text-[#c00620] font-medium whitespace-nowrap underline underline-offset-2"
+                  >
+                    Limpiar todo
+                  </button>
+                )}
               </div>
 
+
               {/* Chips por debajo */}
-              <div className="flex flex-wrap gap-2 mt-2 ml-10">
+              <div className="flex flex-wrap gap-2 mt-4 ml-10">
                 {checkedCategorys.map((cat) => (
                   <div
                     key={cat._id}
@@ -141,7 +163,7 @@ const HeaderBottom = () => {
                         handleToggleCategory(cat);
                       }}
                     >
-                      ×
+                      <IoMdClose className="text-white text-lg" />
                     </button>
                   </div>
                 ))}
@@ -173,24 +195,38 @@ const HeaderBottom = () => {
                       {openGroups[grupo] && (
                         <ul className="ml-4 mt-2">
                           {familiasAgrupadas[grupo].map((item) => (
-                            <li
-                              key={item.codigo}
-                              className="flex items-center gap-3 py-2 cursor-pointer text-base"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleCategory(item);
-                              }}
-                            >
+                            // click en nombre
+                            
+                            // <li
+                            //   key={item.codigo}
+                            //   className="flex items-center gap-3 py-2 cursor-pointer text-base"
+                            //   onClick={(e) => {
+                            //     e.stopPropagation();
+                            //     handleToggleCategory(item);
+                            //   }}
+                            // >
+                            //   <input
+                            //     type="checkbox"
+                            //     className="cursor-pointer w-5 h-5"
+                            //     checked={checkedCategorys.some((b) => b._id === item._id)}
+                            //     onChange={(e) => {
+                            //       e.stopPropagation();
+                            //       handleToggleCategory(item);
+                            //     }}
+                            //   />
+                            //   {item.descripcion}
+                            // </li>
+                            <li key={item.codigo} className="flex items-center gap-3 py-2 text-base">
                               <input
                                 type="checkbox"
+                                id={`cat-${item._id}`}
                                 className="cursor-pointer w-5 h-5"
                                 checked={checkedCategorys.some((b) => b._id === item._id)}
-                                onChange={(e) => {
-                                  e.stopPropagation();
-                                  handleToggleCategory(item);
-                                }}
+                                onChange={() => handleToggleCategory(item)}
                               />
-                              {item.descripcion}
+                              <label htmlFor={`cat-${item._id}`} className="cursor-pointer flex-1 truncate">
+                                {item.descripcion}
+                              </label>
                             </li>
                           ))}
                         </ul>

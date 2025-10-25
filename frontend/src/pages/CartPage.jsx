@@ -91,6 +91,7 @@ useEffect(() => {
 
 
       if (respuesta != null && respuesta.res == true) {
+        window.open(respuesta.link, '_blank');
         setShowModalConfirm(true);
 
       } else {
