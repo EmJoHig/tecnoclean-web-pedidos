@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ImCross } from "react-icons/im";
 import { FaTrash } from "react-icons/fa";
 import { useDispatch } from "react-redux";
+import { useArticulos } from "../../context/articulosContext";
 import {
   deleteItem,
   drecreaseQuantity,
@@ -9,17 +10,86 @@ import {
 } from "../../redux/orebiSlice";
 import { API_URL } from "../../config";
 
-const ItemCardTC = ({ item }) => {
+const ItemCardTC = ({ item, precioCalculado: precioDesdePadre }) => {
+  const dispatch = useDispatch();
+  const { CalcularPrecioArticulo } = useArticulos();
+
+  const [precioCalculado, setPrecioCalculado] = useState(precioDesdePadre ?? 0);
+
+   // si el padre pasa precio, mantenelo sincronizado
+  useEffect(() => {
+    if (precioDesdePadre != null) {
+      setPrecioCalculado(precioDesdePadre);
+    }
+  }, [precioDesdePadre]);
+
+  // solo calcula localmente si el padre no pasó el subtotal
+  useEffect(() => {
+    let mounted = true;
+    async function obtenerPrecio() {
+      if (precioDesdePadre != null) return; // ya lo tiene el padre
+      try {
+        const body = {
+          precioBase: item.priceBase || item.price,
+          fraccion: item.fraccion || 1,
+          cantidad: item.quantity,
+        };
+        const response = await CalcularPrecioArticulo(body);
+        if (!mounted) return;
+        if (response?.res && response?.data?.precioTotal != null) {
+          setPrecioCalculado(parseFloat(response.data.precioTotal));
+        } else {
+          setPrecioCalculado((item.price || 0) * (item.quantity || 0));
+        }
+      } catch (error) {
+        if (!mounted) return;
+        setPrecioCalculado((item.price || 0) * (item.quantity || 0));
+      }
+    }
+    obtenerPrecio();
+    return () => (mounted = false);
+  }, [item.quantity, item.fraccion, precioDesdePadre, item.priceBase, item.price, CalcularPrecioArticulo]);
+
 
   const validCodes = [
     "15205",
-    "7790126120210",
-    "7790126137010"
+    // "7790126120210",
+    // "7790126137010"
   ];
 
   const shouldShowFragancia = validCodes.includes(item.codigo);
 
-  const dispatch = useDispatch();
+
+  // 🧮 Llama al método del context para calcular el precio
+  const obtenerPrecio = async () => {
+    try {
+      const body = {
+        precioBase: item.priceBase || item.price, // Precio por litro
+        fraccion: item.fraccion || 1,
+        cantidad: item.quantity,
+      };
+
+      const response = await CalcularPrecioArticulo(body);
+
+      if (response?.res && response?.data?.precioTotal) {
+        setPrecioCalculado(parseFloat(response.data.precioTotal));
+      } else {
+        console.warn("Error calculando precio", response);
+        setPrecioCalculado(0);
+      }
+    } catch (error) {
+      console.error("Error al calcular precio:", error);
+      setPrecioCalculado(0);
+    }
+  };
+
+
+  // 🔁 Recalcula cada vez que cambie cantidad o fracción
+  useEffect(() => {
+    obtenerPrecio();
+  }, [item.quantity, item.fraccion]);
+
+
   return (
     <div className="w-full grid grid-cols-5 mb-4 mt-4 py-2">
       <div className="flex col-span-5 mdl:col-span-2 items-center gap-4 ml-4">
@@ -47,6 +117,13 @@ const ItemCardTC = ({ item }) => {
           {shouldShowFragancia && (
             <p className="font-semibold text-sm mt-1">Fragancia: {item.fragancia}</p>
           )}
+
+          {/* Mostrar fracción si existe */}
+          {item.fraccion && (
+            <p className="font-semibold text-sm mt-1">
+              Fracción: <span className="font-normal">{item.fraccion} Litros</span>
+            </p>
+          )}
         </div>
 
 
@@ -72,7 +149,13 @@ const ItemCardTC = ({ item }) => {
         </div>
         <div className="w-1/3 flex items-center font-titleFont font-bold text-lg">
           {/* <p>${item.quantity * item.price}</p> */}
-          <p> ${(item.quantity * item.price).toLocaleString("es-ES", {minimumFractionDigits: 2,maximumFractionDigits: 2})} </p>
+          {/* <p> ${(item.quantity * item.price).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} </p> */}
+          <p>
+            ${precioCalculado.toLocaleString("es-ES", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
         </div>
       </div>
     </div>

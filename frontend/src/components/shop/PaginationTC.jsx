@@ -36,11 +36,9 @@ function Items({ currentItems, selectedBrands, selectedCategories }) {
             codigo={item.codigo}
             descripcion={item.descripcion}
             precio={item.precio}
-            color="Red"//{item.color}
-          // badge={item.badge}
-          // des={item.des}
-          // pdf={item.pdf}
-          // ficheTech={item.ficheTech}
+            color="Red"
+            fracciones={item.fracciones ? item.fracciones : []}
+            tienefragancia={item.tienefragancia ? item.tienefragancia : false}
           />
         </div>
       ))}

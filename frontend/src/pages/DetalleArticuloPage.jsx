@@ -12,7 +12,9 @@ const DetalleArticuloPage = () => {
 
   // const { articulos, GetArticulosPorCategoria } = useArticulos();
   // const { familias, GetFamilias } = useArticulos();
-
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
 
   return (
     <>

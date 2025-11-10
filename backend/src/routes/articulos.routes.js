@@ -14,6 +14,7 @@ import {
   ActualizarPreciosImportacionExcel,
   ActualizarPreciosExcelPorCodigo,
   ActualizarPreciosAgenteN8N,
+  CalcularPrecioArticulo,
   CreateArticulo,
   GetArticuloById,
   UpdateArticulo,
@@ -129,7 +130,8 @@ router.post("/articulos/update-precios-excel-por-codigo", jwtCheck, uploadExcel.
 // endpoint llamado por N8N que cambia precio segun codigo del sistema a mi web pedidos
 router.post("/articulos/update-precios-agente-n8n", jwtCheck, ActualizarPreciosAgenteN8N);
 
-
+// CALCULAR PRECIOS SEGUN FRACCIONES
+router.post("/articulos/calcular-precio-articulo", jwtCheck, CalcularPrecioArticulo);
 
 // CRUD
 router.post("/articulos/nuevo-articulo", jwtCheck, uploadImage.single("file"), CreateArticulo);

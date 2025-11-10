@@ -11,13 +11,20 @@ const ProductInfoTC = ({ productInfo }) => {
   const { fragancias, GetFragancias } = useArticulos();
 
   const [selectedFragancia, setSelectedFragancia] = useState("");
+  const [selectedFraccion, setSelectedFraccion] = useState("1");
 
   const highlightStyle = {
     color: "#d0121a", // Change this to the desired color
     fontWeight: "bold", // Change this to the desired font weight
   };
 
-  const validCodes = ["15205", "7790126120210", "7790126137010"];
+
+  // CAPO ARREGLA ESTO TAMBIEN
+  const validCodes = ["15205"];
+
+
+
+  const fracciones = ["0.5", "1", "1.5", "2", "2.25", "2.5"];
 
 
   useEffect(() => {
@@ -92,6 +99,35 @@ const ProductInfoTC = ({ productInfo }) => {
         </div>
       )}
 
+      {/* Selección de Fracción */}
+      {productInfo?.fracciones?.length > 0 && (
+        <div>
+          <label
+            htmlFor="fraccion"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Selecciona una fracción
+          </label>
+          <select
+            id="fraccion"
+            name="fraccion"
+            value={selectedFraccion}
+            onChange={(e) => setSelectedFraccion(e.target.value)}
+            className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            style={{
+              width: "20%",
+              maxHeight: "15rem",
+              overflowY: "auto",
+            }}
+          >
+            {productInfo.fracciones.map((fr) => (
+              <option key={fr} value={fr}>
+                {fr} L
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
 
       {/* <p className="text-base text-gray-600">{renderDescripcion()}</p> */}
@@ -179,9 +215,33 @@ const ProductInfoTC = ({ productInfo }) => {
       <button
         onClick={() => {
           // Si el código requiere fragancia, se la agregamos al _id
-          const customId = validCodes.includes(productInfo.codigo) && selectedFragancia
-            ? `${productInfo._id}-${selectedFragancia}`
-            : productInfo._id;
+          if (productInfo._fracciones && productInfo._fracciones.length > 0) {
+            console.log("Producto con fracciones disponibles:");
+            console.log(productInfo._fracciones);
+          }
+
+          // antes
+          // const customId = validCodes.includes(productInfo.codigo) && selectedFragancia
+          //   ? `${productInfo._id}-${selectedFragancia}`
+          //   : productInfo._id;
+
+          // ahora
+          // Construimos el ID personalizado considerando fragancia y fracción
+          let customId = productInfo._id;
+
+          // Si tiene código válido (usa fragancias)
+          if (validCodes.includes(productInfo.codigo)) {
+            if (selectedFragancia && selectedFraccion) {
+              customId = `${productInfo._id}-${selectedFragancia}-${selectedFraccion}`;
+            } else if (selectedFragancia) {
+              customId = `${productInfo._id}-${selectedFragancia}`;
+            } else if (selectedFraccion) {
+              customId = `${productInfo._id}-${selectedFraccion}`;
+            }
+          } else if (selectedFraccion) {
+            // Si no tiene fragancia pero sí fracción
+            customId = `${productInfo._id}-${selectedFraccion}`;
+          }
 
           dispatch(
             addToCart({
@@ -194,6 +254,7 @@ const ProductInfoTC = ({ productInfo }) => {
               price: productInfo.precio,
               colors: productInfo.color,
               fragancia: selectedFragancia,
+              fraccion: selectedFraccion,
             })
           );
         }}

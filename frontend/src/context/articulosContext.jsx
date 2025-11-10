@@ -11,6 +11,7 @@ import {
   importarArticulosExcelRequest,
   updatePreciosImportarExcelRequest,
   updatePreciosImportarExcelPorCodigosRequest,
+  calcularPrecioArticuloRequest,
   //crud
   createArticuloRequest,
   getArticuloPorIdRequest,
@@ -282,6 +283,34 @@ const GetFragancias = async () => {
   };
 
 
+  // calcular precio articulo segun fracciones
+  const CalcularPrecioArticulo = async (bodyCarritoUsuario) => {
+    try {
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
+      const res = await calcularPrecioArticuloRequest(token, bodyCarritoUsuario);
+
+      if (res && res.data) {
+        return res.data;
+      } else {
+        console.log("Error en CalcularPrecioArticulo");
+        return res.data;
+      }
+    } catch (error) {
+      console.log(error);
+      throw new Error("Error en CalcularPrecioArticulo");
+    } finally {
+
+    }
+  };
+
+
+
+
   // CRUD
 
   const createArticulo = async (articulo) => {
@@ -425,6 +454,7 @@ const GetFragancias = async () => {
         importarArticulosExcel,
         updatePreciosImportarExcel,// version vieja
         updatePreciosImportarExcelPorCodigos,// version nueva 
+        CalcularPrecioArticulo,
       }}
     >
       {children}

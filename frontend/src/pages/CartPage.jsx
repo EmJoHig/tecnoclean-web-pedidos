@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 
 const CartPage = () => {
   const dispatch = useDispatch();
-  const { enviarCarritoWsp, loading } = useArticulos();
+  const { enviarCarritoWsp, loading, CalcularPrecioArticulo } = useArticulos();
 
   const { user, getAccessTokenSilently, getIdTokenClaims } = useAuth0();
 
@@ -22,6 +22,7 @@ const CartPage = () => {
 
   const products = useSelector((state) => state.orebiReducer.products);
   const [totalAmt, setTotalAmt] = useState("");
+  const [subtotalsMap, setSubtotalsMap] = useState({}); // { [productId]: precioCalculado }
 
   // COSTO ENVÍO, MAS ADELANTE...
   const [shippingCharge, setShippingCharge] = useState("");
@@ -31,34 +32,95 @@ const CartPage = () => {
   const [loadingSendMsg, setLoadingSendMsg] = useState(false);
 
 
+  // useEffect(() => {
+  //   let price = 0;
+  //   products.map((item) => {
+  //     price += item.price * item.quantity;
+  //     return price;
+  //   });
+  //   setTotalAmt(price);
+  // }, [products]);
+
   useEffect(() => {
-    let price = 0;
-    products.map((item) => {
-      price += item.price * item.quantity;
-      return price;
-    });
-    setTotalAmt(price);
-  }, [products]);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
+
+
+  // Recalcula TOTAL usando el mismo cálculo asíncrono que usa ItemCardTC
+  useEffect(() => {
+    let mounted = true;
+
+    async function calcularTotales() {
+      if (!products || products.length === 0) {
+        if (mounted) {
+          setTotalAmt(0);
+          setSubtotalsMap({});
+        }
+        return;
+      }
+
+      const promises = products.map(async (item) => {
+        try {
+          const body = {
+            precioBase: item.priceBase || item.price, // precio por litro o base
+            fraccion: item.fraccion || 1,
+            cantidad: item.quantity,
+          };
+          const resp = await CalcularPrecioArticulo(body);
+          if (resp?.res && resp?.data?.precioTotal != null) {
+            return { id: item._id, precio: parseFloat(resp.data.precioTotal) };
+          } else {
+            // fallback al cálculo sencillo si falla
+            const fallback = (item.price || 0) * (item.quantity || 0);
+            return { id: item._id, precio: fallback };
+          }
+        } catch (err) {
+          const fallback = (item.price || 0) * (item.quantity || 0);
+          return { id: item._id, precio: fallback };
+        }
+      });
+
+      const results = await Promise.all(promises);
+      if (!mounted) return;
+
+      const map = {};
+      let sum = 0;
+      results.forEach((r) => {
+        map[r.id] = r.precio;
+        sum += r.precio;
+      });
+
+      setSubtotalsMap(map);
+      setTotalAmt(sum);
+    }
+
+    calcularTotales();
+
+    return () => {
+      mounted = false;
+    };
+  }, [products, CalcularPrecioArticulo]);
+
 
 
 
 
   // Dentro de tu useEffect
-useEffect(() => {
-  async function fetchData() {
-    try {
-      const claims = await getIdTokenClaims();
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const claims = await getIdTokenClaims();
 
-      console.log("user:", user);
+        // console.log("user:", user);
 
-      
-    } catch (error) {
-      console.error("Error al obtener claims:", error);
+
+      } catch (error) {
+        console.error("Error al obtener claims:", error);
+      }
     }
-  }
 
-  fetchData();
-}, []);
+    fetchData();
+  }, []);
 
 
   // useEffect(() => {
@@ -131,7 +193,7 @@ useEffect(() => {
                   key={item._id}
                   className="bg-white border rounded-xl shadow-md mb-4 transition-transform hover:scale-[1.01]"
                 >
-                  <ItemCardTC item={item} />
+                  <ItemCardTC item={item} precioCalculado={subtotalsMap[item._id]} />
                 </div>
               ))}
             </div>
@@ -176,7 +238,8 @@ useEffect(() => {
                     Total
                     <span className="font-bold tracking-wide text-lg font-titleFont">
                       {/* ${totalAmt + shippingCharge} */}
-                      ${totalAmt.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {/* ${totalAmt.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} */}
+                      ${Number(totalAmt || 0).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </p>
                 </div>

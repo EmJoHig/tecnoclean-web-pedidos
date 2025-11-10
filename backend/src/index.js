@@ -7,7 +7,7 @@ async function main() {
   await connectDB();
    
  // tst produccion ya anda todo test de carpeta imagenes 
- await  whatsapp.initialize();
+ // await  whatsapp.initialize();
 
   
   app.listen(app.get("port")); 

@@ -785,3 +785,57 @@ export const ActualizarPreciosExcelPorCodigo = async (req, res) => {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
+
+
+// CALCULAR PRECIO EN BASE A FRACCION
+export const CalcularPrecioArticulo = async (req, res) => {
+  try {
+    
+    const { precioBase, fraccion, cantidad } = req.body;
+
+    // Validaciones básicas
+    if (
+      precioBase === undefined ||
+      fraccion === undefined ||
+      cantidad === undefined
+    ) {
+      return res.status(400).json({
+        res: false,
+        error: "Debe enviar precioBase, fraccion y cantidad en el cuerpo de la petición",
+      });
+    }
+
+    const base = parseFloat(precioBase);
+    const frac = parseFloat(fraccion);
+    const cant = parseFloat(cantidad);
+
+    if (isNaN(base) || isNaN(frac) || isNaN(cant)) {
+      return res.status(400).json({
+        res: false,
+        error: "Los valores deben ser numéricos",
+      });
+    }
+
+    // Cálculo
+    const precioPorFraccion = base * frac;
+    const precioTotal = precioPorFraccion * cant;
+
+    // Respuesta
+    res.json({
+      res: true,
+      data: {
+        precioBase: base,
+        fraccion: frac,
+        cantidad: cant,
+        precioUnitarioSegunFraccion: precioPorFraccion.toFixed(2),
+        precioTotal: precioTotal.toFixed(2),
+      },
+    });
+  } catch (error) {
+    console.error("Error en CalcularPrecioArticulo:", error);
+    res.status(500).json({
+      res: false,
+      error: "Error interno del servidor",
+    });
+  }
+};

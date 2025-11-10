@@ -22,12 +22,13 @@ const ProductTC = (props) => {
   const navigate = useNavigate();
   const productItem = props;
 
-  const validCodes = ["15205", "7790126120210", "7790126137010"];
+  // CAPO ARREGLA ESTO
+  const validCodes = ["15205"];
 
 
   const handleProductDetails = () => {
 
-    navigate(`/articulo/${rootId}`, {
+    navigate(`/articulo/${encodeURIComponent(props.descripcion)}`, {
       state: {
         item: productItem,
       },
@@ -50,13 +51,45 @@ const ProductTC = (props) => {
           </div>
         </div>
 
-        {/* Datos sobre la imagen */}
-        <div className="absolute bottom-0 w-full bg-white bg-opacity-90 p-4 z-20">
+        {/* Datos sobre precio*/}
+        {/* <div className="absolute bottom-0 w-full bg-white bg-opacity-90 p-4 z-20">
           <h2 className="text-lg font-bold text-primeColor text-xl">{props.descripcion}</h2>
           <p className="text-xl font-bold text-[#4a4949]">
             $ {props.precio.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
+        </div> */}
+
+        <div className="absolute bottom-0 w-full bg-white bg-opacity-90 p-4 z-20">
+          <h2 className="text-lg font-bold text-primeColor text-xl">{props.descripcion}</h2>
+
+          {/* Contenedor flex para alinear precio + dropdown */}
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-xl font-bold text-[#4a4949]">
+              $ {props.precio.toLocaleString("es-ES", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </p>
+
+            {/* Dropdown de fracciones (solo si existen) */}
+            {/* {props.fracciones && props.fracciones.length > 0 && (
+              <select
+                className="border border-gray-300 rounded-md text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
+                defaultValue=""
+              >
+                <option value="" disabled>
+                  Elegí una fracción
+                </option>
+                {props.fracciones.map((f, index) => (
+                  <option key={index} value={f}>
+                    {f}
+                  </option>
+                ))}
+              </select>
+            )} */}
+          </div>
         </div>
+
 
         {/* Controles de carrito y wishlist */}
         <div className="absolute top-4 right-4 z-30">
@@ -78,9 +111,13 @@ const ProductTC = (props) => {
               //   )
               // }
               onClick={() => {
-                if (validCodes.includes(props.codigo)) {
+                console.log("Agregar al carrito props:");
+                console.log(props);
+
+
+                if (props.fracciones && props.fracciones.length > 0) {
                   // Redirigir al detalle si el código es uno de los especiales
-                  navigate(`/articulo/${rootId}`, {
+                  navigate(`/articulo/${encodeURIComponent(props.descripcion)}`, {
                     state: {
                       item: productItem,
                     },
