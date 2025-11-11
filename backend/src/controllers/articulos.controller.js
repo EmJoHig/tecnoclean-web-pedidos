@@ -204,8 +204,17 @@ const generarMensaje = (bodyCarritoUsuario) => {
     if (item.fragancia) {
       mensaje += `  Fragancia: ${item.fragancia}\n`;
     }
+    if (item.fraccion) {
+      mensaje += `  Fracción: ${item.fraccion}\n`;
+    }
     mensaje += "\n";
   });
+
+  mensaje += "\n";
+  mensaje += `  PRECIO TOTAL: $ ${bodyCarritoUsuario.precioTotal.toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}\n`;
 
   return mensaje.trim();
 
@@ -650,7 +659,7 @@ export const DeleteArticulo = async (req, res) => {
 export const ActualizarPreciosAgenteN8N = async (req, res) => {
   const { data: productos } = req.body;
 
- // console.log("Productos recibidos para actualización de precios:", productos);
+  // console.log("Productos recibidos para actualización de precios:", productos);
 
   if (!productos || !Array.isArray(productos) || productos.length === 0) {
     return res.status(400).json({ error: "No se enviaron productos en el body" });
@@ -790,7 +799,7 @@ export const ActualizarPreciosExcelPorCodigo = async (req, res) => {
 // CALCULAR PRECIO EN BASE A FRACCION
 export const CalcularPrecioArticulo = async (req, res) => {
   try {
-    
+
     const { precioBase, fraccion, cantidad } = req.body;
 
     // Validaciones básicas
