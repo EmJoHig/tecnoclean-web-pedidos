@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -19,7 +19,7 @@ const CartPage = () => {
   const { user, getAccessTokenSilently, getIdTokenClaims } = useAuth0();
 
   const navigate = useNavigate();
-
+  const [calculandoTotales, setCalculandoTotales] = useState(false);
   const products = useSelector((state) => state.orebiReducer.products);
   const [totalAmt, setTotalAmt] = useState("");
   const [subtotalsMap, setSubtotalsMap] = useState({}); // { [productId]: precioCalculado }
@@ -46,81 +46,74 @@ const CartPage = () => {
   }, []);
 
 
-  // Recalcula TOTAL usando el mismo cálculo asíncrono que usa ItemCardTC
-  useEffect(() => {
-    let mounted = true;
-
-    async function calcularTotales() {
-      if (!products || products.length === 0) {
-        if (mounted) {
-          setTotalAmt(0);
-          setSubtotalsMap({});
-        }
-        return;
-      }
-
-      const promises = products.map(async (item) => {
-        try {
-          const body = {
-            precioBase: item.priceBase || item.price, // precio por litro o base
-            fraccion: item.fraccion || 1,
-            cantidad: item.quantity,
-          };
-          const resp = await CalcularPrecioArticulo(body);
-          if (resp?.res && resp?.data?.precioTotal != null) {
-            return { id: item._id, precio: parseFloat(resp.data.precioTotal) };
-          } else {
-            // fallback al cálculo sencillo si falla
-            const fallback = (item.price || 0) * (item.quantity || 0);
-            return { id: item._id, precio: fallback };
-          }
-        } catch (err) {
-          const fallback = (item.price || 0) * (item.quantity || 0);
-          return { id: item._id, precio: fallback };
-        }
-      });
-
-      const results = await Promise.all(promises);
-      if (!mounted) return;
-
-      const map = {};
-      let sum = 0;
-      results.forEach((r) => {
-        map[r.id] = r.precio;
-        sum += r.precio;
-      });
-
-      setSubtotalsMap(map);
-      setTotalAmt(sum);
+  const calcularTotales = useCallback(async (productos) => {
+    if (!productos || productos.length === 0) {
+      setTotalAmt(0);
+      setSubtotalsMap({});
+      return;
     }
 
-    calcularTotales();
+    setCalculandoTotales(true);
 
-    return () => {
-      mounted = false;
-    };
-  }, [products, CalcularPrecioArticulo]);
+    try {
+      const resultados = await Promise.all(
+        productos.map(async (item) => {
+          const { priceBase, price, fraccion = 1, quantity, _id } = item;
+          const body = { precioBase: priceBase || price, fraccion, cantidad: quantity };
+
+          try {
+            const resp = await CalcularPrecioArticulo(body);
+            const precioTotal = resp?.data?.precioTotal ?? price * quantity;
+            return { id: _id, precio: parseFloat(precioTotal) || 0 };
+          } catch {
+            return { id: _id, precio: (price || 0) * (quantity || 0) };
+          }
+        })
+      );
+
+      // Construir mapa de subtotales y sumar total
+      const map = resultados.reduce((acc, { id, precio }) => {
+        acc[id] = precio;
+        return acc;
+      }, {});
+
+      const suma = resultados.reduce((sum, r) => sum + r.precio, 0);
+
+      setSubtotalsMap(map);
+      setTotalAmt(suma);
+    } catch (error) {
+      console.error("Error al calcular totales:", error);
+    } finally {
+      setCalculandoTotales(false);
+    }
+  }, [CalcularPrecioArticulo]);
+
+  // recalcular cuando cambia products
+  useEffect(() => {
+    calcularTotales(products);
+    console.log("calcularTotales...");
+  }, [products]);
 
 
 
 
 
   // Dentro de tu useEffect
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const claims = await getIdTokenClaims();
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     try {
+  //       const claims = await getIdTokenClaims();
 
-        // console.log("user:", user);
+  //       // console.log("user:", user);
 
 
-      } catch (error) {
-        console.error("Error al obtener claims:", error);
-      }
-    }
+  //     } catch (error) {
+  //       console.error("Error al obtener claims:", error);
+  //     }
+  //   }
 
-    fetchData();
-  }, []);
+  //   fetchData();
+  // }, []);
 
 
   // useEffect(() => {
@@ -137,7 +130,7 @@ const CartPage = () => {
   const handleClickEnviarCarrito = async () => {
 
     try {
-
+      
       setLoadingSendMsg(true);
 
       const telefono = user['https://tecnoclean/api/phone_number'];
@@ -147,6 +140,7 @@ const CartPage = () => {
         nombreUsuario: user.name,
         telefono: telefono,
         articulos: products,
+        precioTotal: totalAmt,
       }
 
       const respuesta = await enviarCarritoWsp(body);
@@ -222,24 +216,22 @@ const CartPage = () => {
               <div className="w-96 flex flex-col gap-4">
                 <h1 className="text-2xl font-semibold text-right">Total carrito</h1>
                 <div>
-                  {/* <p className="flex items-center justify-between border-[1px] border-gray-400 border-b-0 py-1.5 text-lg px-4 font-medium">
-                  Subtotal
-                  <span className="font-semibold tracking-wide font-titleFont">
-                    ${totalAmt}
-                  </span>
-                </p> */}
-                  {/* <p className="flex items-center justify-between border-[1px] border-gray-400 border-b-0 py-1.5 text-lg px-4 font-medium">
-                  Shipping Charge
-                  <span className="font-semibold tracking-wide font-titleFont">
-                    ${shippingCharge}
-                  </span>
-                </p> */}
                   <p className="flex items-center justify-between border-[1px] border-gray-400 py-1.5 text-lg px-4 font-medium">
                     Total
-                    <span className="font-bold tracking-wide text-lg font-titleFont">
-                      {/* ${totalAmt + shippingCharge} */}
-                      {/* ${totalAmt.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} */}
-                      ${Number(totalAmt || 0).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <span className="font-bold tracking-wide text-lg font-titleFont flex items-center gap-2 min-h-[28px]">
+                      {calculandoTotales ? (
+                        <>
+                          <FaSpinner className="animate-spin text-gray-500 text-xl" />
+                          <span className="text-gray-500 text-base">Calculando...</span>
+                        </>
+                      ) : (
+                        <>
+                          ${Number(totalAmt || 0).toLocaleString("es-ES", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </>
+                      )}
                     </span>
                   </p>
                 </div>

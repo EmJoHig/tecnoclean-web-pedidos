@@ -15,8 +15,9 @@ const ItemCardTC = ({ item, precioCalculado: precioDesdePadre }) => {
   const { CalcularPrecioArticulo } = useArticulos();
 
   const [precioCalculado, setPrecioCalculado] = useState(precioDesdePadre ?? 0);
+  const [precioUnitarioCalculado, setPrecioUnitarioCalculado] = useState(item.price || 0);
 
-   // si el padre pasa precio, mantenelo sincronizado
+  // si el padre pasa precio, mantenelo sincronizado
   useEffect(() => {
     if (precioDesdePadre != null) {
       setPrecioCalculado(precioDesdePadre);
@@ -90,6 +91,39 @@ const ItemCardTC = ({ item, precioCalculado: precioDesdePadre }) => {
   }, [item.quantity, item.fraccion]);
 
 
+
+  //  precio unitario
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function obtenerPrecioUnitario() {
+      try {
+        const body = {
+          precioBase: item.priceBase || item.price,
+          fraccion: item.fraccion || 1,
+          cantidad: 1, // ✅ solo 1 unidad, para obtener el precio unitario
+        };
+
+        const response = await CalcularPrecioArticulo(body);
+
+        if (!mounted) return;
+
+        if (response?.res && response?.data?.precioTotal != null) {
+          setPrecioUnitarioCalculado(parseFloat(response.data.precioTotal));
+        } else {
+          setPrecioUnitarioCalculado(item.price || 0);
+        }
+      } catch (error) {
+        if (!mounted) return;
+        setPrecioUnitarioCalculado(item.price || 0);
+      }
+    }
+
+    obtenerPrecioUnitario();
+    return () => (mounted = false);
+  }, [item.priceBase, item.price, item.fraccion, CalcularPrecioArticulo]);
+
   return (
     <div className="w-full grid grid-cols-5 mb-4 mt-4 py-2">
       <div className="flex col-span-5 mdl:col-span-2 items-center gap-4 ml-4">
@@ -129,8 +163,14 @@ const ItemCardTC = ({ item, precioCalculado: precioDesdePadre }) => {
 
       </div>
       <div className="col-span-5 mdl:col-span-3 flex items-center justify-between py-4 mdl:py-0 px-4 mdl:px-0 gap-6 mdl:gap-0">
-        <div className="flex w-1/3 items-center text-lg font-semibold">
+        {/* <div className="flex w-1/3 items-center text-lg font-semibold">
           ${item.price.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </div> */}
+        <div className="flex w-1/3 items-center text-lg font-semibold">
+          ${precioUnitarioCalculado.toLocaleString("es-ES", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
         </div>
         <div className="w-1/3 flex items-center gap-6 text-lg">
           <span

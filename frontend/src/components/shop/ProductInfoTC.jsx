@@ -24,7 +24,7 @@ const ProductInfoTC = ({ productInfo }) => {
 
 
 
-  const fracciones = ["0.5", "1", "1.5", "2", "2.25", "2.5"];
+  // const fracciones = ["0.5", "1", "1.5", "2", "2.25", "2.5"];
 
 
   useEffect(() => {
@@ -253,7 +253,7 @@ const ProductInfoTC = ({ productInfo }) => {
               badge: null,
               price: productInfo.precio,
               colors: productInfo.color,
-              fragancia: selectedFragancia,
+              fragancia: validCodes.includes(productInfo.codigo)? selectedFragancia : "",
               fraccion: selectedFraccion,
             })
           );
