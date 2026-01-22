@@ -41,58 +41,82 @@ const CartPage = () => {
   //   setTotalAmt(price);
   // }, [products]);
 
+
+  // const calcularPrecioLocal = ({ precioBase, fraccion = 1, cantidad = 1 }) => {
+  //   const unitario = Number(precioBase || 0) * Number(fraccion || 1);
+  //   const total = unitario * Number(cantidad || 1);
+
+  //   return {
+  //     unitario,
+  //     total,
+  //   };
+  // };
+
+  useEffect(() => {
+    const total = products.reduce((acc, item) => {
+      const precioBase = item.priceBase || item.price;
+      const fraccion = item.fraccion || 1;
+      const cantidad = item.quantity || 0;
+
+      return acc + precioBase * fraccion * cantidad;
+    }, 0);
+
+    setTotalAmt(total);
+  }, [products]);
+
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
 
 
-  const calcularTotales = useCallback(async (productos) => {
-    if (!productos || productos.length === 0) {
-      setTotalAmt(0);
-      setSubtotalsMap({});
-      return;
-    }
+  // const calcularTotales = useCallback(async (productos) => {
+  //   if (!productos || productos.length === 0) {
+  //     setTotalAmt(0);
+  //     setSubtotalsMap({});
+  //     return;
+  //   }
 
-    setCalculandoTotales(true);
+  //   setCalculandoTotales(true);
 
-    try {
-      const resultados = await Promise.all(
-        productos.map(async (item) => {
-          const { priceBase, price, fraccion = 1, quantity, _id } = item;
-          const body = { precioBase: priceBase || price, fraccion, cantidad: quantity };
+  //   try {
+  //     const resultados = await Promise.all(
+  //       productos.map(async (item) => {
+  //         const { priceBase, price, fraccion = 1, quantity, _id } = item;
+  //         const body = { precioBase: priceBase || price, fraccion, cantidad: quantity };
 
-          try {
-            const resp = await CalcularPrecioArticulo(body);
-            const precioTotal = resp?.data?.precioTotal ?? price * quantity;
-            return { id: _id, precio: parseFloat(precioTotal) || 0 };
-          } catch {
-            return { id: _id, precio: (price || 0) * (quantity || 0) };
-          }
-        })
-      );
+  //         try {
+  //           const resp = await CalcularPrecioArticulo(body);
+  //           const precioTotal = resp?.data?.precioTotal ?? price * quantity;
+  //           return { id: _id, precio: parseFloat(precioTotal) || 0 };
+  //         } catch {
+  //           return { id: _id, precio: (price || 0) * (quantity || 0) };
+  //         }
+  //       })
+  //     );
 
-      // Construir mapa de subtotales y sumar total
-      const map = resultados.reduce((acc, { id, precio }) => {
-        acc[id] = precio;
-        return acc;
-      }, {});
+  //     // Construir mapa de subtotales y sumar total
+  //     const map = resultados.reduce((acc, { id, precio }) => {
+  //       acc[id] = precio;
+  //       return acc;
+  //     }, {});
 
-      const suma = resultados.reduce((sum, r) => sum + r.precio, 0);
+  //     const suma = resultados.reduce((sum, r) => sum + r.precio, 0);
 
-      setSubtotalsMap(map);
-      setTotalAmt(suma);
-    } catch (error) {
-      console.error("Error al calcular totales:", error);
-    } finally {
-      setCalculandoTotales(false);
-    }
-  }, [CalcularPrecioArticulo]);
+  //     setSubtotalsMap(map);
+  //     setTotalAmt(suma);
+  //   } catch (error) {
+  //     console.error("Error al calcular totales:", error);
+  //   } finally {
+  //     setCalculandoTotales(false);
+  //   }
+  // }, [CalcularPrecioArticulo]);
 
   // recalcular cuando cambia products
-  useEffect(() => {
-    calcularTotales(products);
-    console.log("calcularTotales...");
-  }, [products]);
+  // useEffect(() => {
+  //   calcularTotales(products);
+  //   console.log("calcularTotales...");
+  // }, [products]);
 
 
 
@@ -130,7 +154,7 @@ const CartPage = () => {
   const handleClickEnviarCarrito = async () => {
 
     try {
-      
+
       setLoadingSendMsg(true);
 
       const telefono = user['https://tecnoclean/api/phone_number'];
@@ -187,7 +211,7 @@ const CartPage = () => {
                   key={item._id}
                   className="bg-white border rounded-xl shadow-md mb-4 transition-transform hover:scale-[1.01]"
                 >
-                  <ItemCardTC item={item} precioCalculado={subtotalsMap[item._id]} />
+                  <ItemCardTC item={item} />
                 </div>
               ))}
             </div>
@@ -218,20 +242,11 @@ const CartPage = () => {
                 <div>
                   <p className="flex items-center justify-between border-[1px] border-gray-400 py-1.5 text-lg px-4 font-medium">
                     Total
-                    <span className="font-bold tracking-wide text-lg font-titleFont flex items-center gap-2 min-h-[28px]">
-                      {calculandoTotales ? (
-                        <>
-                          <FaSpinner className="animate-spin text-gray-500 text-xl" />
-                          <span className="text-gray-500 text-base">Calculando...</span>
-                        </>
-                      ) : (
-                        <>
-                          ${Number(totalAmt || 0).toLocaleString("es-ES", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </>
-                      )}
+                    <span className="font-bold">
+                      ${totalAmt.toLocaleString("es-ES", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </span>
                   </p>
                 </div>

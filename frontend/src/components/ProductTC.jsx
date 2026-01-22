@@ -126,7 +126,7 @@ const ProductTC = (props) => {
                   // Agregar al carrito normalmente
                   dispatch(
                     addToCart({
-                      _id: props._id,
+                      _id: props._id + "-1",
                       codigo: props.codigo,
                       name: props.descripcion,
                       quantity: 1,

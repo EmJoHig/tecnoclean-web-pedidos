@@ -12,6 +12,8 @@ import {
   updatePreciosImportarExcelRequest,
   updatePreciosImportarExcelPorCodigosRequest,
   calcularPrecioArticuloRequest,
+  migracionRequest,
+  updateStockImportarExcelPorCodigosRequest,
   //crud
   createArticuloRequest,
   getArticuloPorIdRequest,
@@ -429,6 +431,60 @@ const GetFragancias = async () => {
   };
 
 
+  // migracion
+  const migracion = async (formDataExcel) => {
+    try {
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
+      setLoading(true);
+
+      const res = await migracionRequest(token, formDataExcel);
+      if (res) {
+        return res.data;
+      } else {
+        console.log("Error en migracion");
+        return res.data;
+      }
+    } catch (error) {
+      console.log(error);
+      throw new Error("Error en migracion");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // importar update stock por codigos existentes en bd 
+  const updateStockImportarExcelPorCodigos = async (formDataExcel) => {
+    try {
+
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+
+      setLoading(true);
+
+      const res = await updateStockImportarExcelPorCodigosRequest(token, formDataExcel);
+      if (res) {
+        return res.data;
+      } else {
+        console.log("Error en updateStockImportarExcelPorCodigos");
+        return res.data;
+      }
+    } catch (error) {
+      console.log(error);
+      throw new Error("Error en updateStockImportarExcelPorCodigos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <ArticuloContext.Provider
       value={{
@@ -455,6 +511,8 @@ const GetFragancias = async () => {
         updatePreciosImportarExcel,// version vieja
         updatePreciosImportarExcelPorCodigos,// version nueva 
         CalcularPrecioArticulo,
+        migracion,
+        updateStockImportarExcelPorCodigos
       }}
     >
       {children}

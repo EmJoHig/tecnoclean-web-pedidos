@@ -10,46 +10,53 @@ import {
 } from "../../redux/orebiSlice";
 import { API_URL } from "../../config";
 
-const ItemCardTC = ({ item, precioCalculado: precioDesdePadre }) => {
+const ItemCardTC = ({ item }) => {
   const dispatch = useDispatch();
-  const { CalcularPrecioArticulo } = useArticulos();
 
-  const [precioCalculado, setPrecioCalculado] = useState(precioDesdePadre ?? 0);
-  const [precioUnitarioCalculado, setPrecioUnitarioCalculado] = useState(item.price || 0);
+  const precioBase = item.priceBase || item.price;
+  const fraccion = item.fraccion || 1;
+  const cantidad = item.quantity || 0;
+
+  const precioUnitario = precioBase * fraccion;
+  const precioTotal = precioUnitario * cantidad;
+  // const { CalcularPrecioArticulo } = useArticulos();
+
+  // const [precioCalculado, setPrecioCalculado] = useState(precioDesdePadre ?? 0);
+  // const [precioUnitarioCalculado, setPrecioUnitarioCalculado] = useState(item.price || 0);
 
   // si el padre pasa precio, mantenelo sincronizado
-  useEffect(() => {
-    if (precioDesdePadre != null) {
-      setPrecioCalculado(precioDesdePadre);
-    }
-  }, [precioDesdePadre]);
+  // useEffect(() => {
+  //   if (precioDesdePadre != null) {
+  //     setPrecioCalculado(precioDesdePadre);
+  //   }
+  // }, [precioDesdePadre]);
 
   // solo calcula localmente si el padre no pasó el subtotal
-  useEffect(() => {
-    let mounted = true;
-    async function obtenerPrecio() {
-      if (precioDesdePadre != null) return; // ya lo tiene el padre
-      try {
-        const body = {
-          precioBase: item.priceBase || item.price,
-          fraccion: item.fraccion || 1,
-          cantidad: item.quantity,
-        };
-        const response = await CalcularPrecioArticulo(body);
-        if (!mounted) return;
-        if (response?.res && response?.data?.precioTotal != null) {
-          setPrecioCalculado(parseFloat(response.data.precioTotal));
-        } else {
-          setPrecioCalculado((item.price || 0) * (item.quantity || 0));
-        }
-      } catch (error) {
-        if (!mounted) return;
-        setPrecioCalculado((item.price || 0) * (item.quantity || 0));
-      }
-    }
-    obtenerPrecio();
-    return () => (mounted = false);
-  }, [item.quantity, item.fraccion, precioDesdePadre, item.priceBase, item.price, CalcularPrecioArticulo]);
+  // useEffect(() => {
+  //   let mounted = true;
+  //   async function obtenerPrecio() {
+  //     if (precioDesdePadre != null) return; // ya lo tiene el padre
+  //     try {
+  //       const body = {
+  //         precioBase: item.priceBase || item.price,
+  //         fraccion: item.fraccion || 1,
+  //         cantidad: item.quantity,
+  //       };
+  //       const response = await CalcularPrecioArticulo(body);
+  //       if (!mounted) return;
+  //       if (response?.res && response?.data?.precioTotal != null) {
+  //         setPrecioCalculado(parseFloat(response.data.precioTotal));
+  //       } else {
+  //         setPrecioCalculado((item.price || 0) * (item.quantity || 0));
+  //       }
+  //     } catch (error) {
+  //       if (!mounted) return;
+  //       setPrecioCalculado((item.price || 0) * (item.quantity || 0));
+  //     }
+  //   }
+  //   obtenerPrecio();
+  //   return () => (mounted = false);
+  // }, [item.quantity, item.fraccion, precioDesdePadre, item.priceBase, item.price, CalcularPrecioArticulo]);
 
 
   const validCodes = [
@@ -62,67 +69,67 @@ const ItemCardTC = ({ item, precioCalculado: precioDesdePadre }) => {
 
 
   // 🧮 Llama al método del context para calcular el precio
-  const obtenerPrecio = async () => {
-    try {
-      const body = {
-        precioBase: item.priceBase || item.price, // Precio por litro
-        fraccion: item.fraccion || 1,
-        cantidad: item.quantity,
-      };
+  // const obtenerPrecio = async () => {
+  //   try {
+  //     const body = {
+  //       precioBase: item.priceBase || item.price, // Precio por litro
+  //       fraccion: item.fraccion || 1,
+  //       cantidad: item.quantity,
+  //     };
 
-      const response = await CalcularPrecioArticulo(body);
+  //     const response = await CalcularPrecioArticulo(body);
 
-      if (response?.res && response?.data?.precioTotal) {
-        setPrecioCalculado(parseFloat(response.data.precioTotal));
-      } else {
-        console.warn("Error calculando precio", response);
-        setPrecioCalculado(0);
-      }
-    } catch (error) {
-      console.error("Error al calcular precio:", error);
-      setPrecioCalculado(0);
-    }
-  };
+  //     if (response?.res && response?.data?.precioTotal) {
+  //       setPrecioCalculado(parseFloat(response.data.precioTotal));
+  //     } else {
+  //       console.warn("Error calculando precio", response);
+  //       setPrecioCalculado(0);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error al calcular precio:", error);
+  //     setPrecioCalculado(0);
+  //   }
+  // };
 
 
   // 🔁 Recalcula cada vez que cambie cantidad o fracción
-  useEffect(() => {
-    obtenerPrecio();
-  }, [item.quantity, item.fraccion]);
+  // useEffect(() => {
+  //   obtenerPrecio();
+  // }, [item.quantity, item.fraccion]);
 
 
 
   //  precio unitario
 
-  useEffect(() => {
-    let mounted = true;
+  // useEffect(() => {
+  //   let mounted = true;
 
-    async function obtenerPrecioUnitario() {
-      try {
-        const body = {
-          precioBase: item.priceBase || item.price,
-          fraccion: item.fraccion || 1,
-          cantidad: 1, // ✅ solo 1 unidad, para obtener el precio unitario
-        };
+  //   async function obtenerPrecioUnitario() {
+  //     try {
+  //       const body = {
+  //         precioBase: item.priceBase || item.price,
+  //         fraccion: item.fraccion || 1,
+  //         cantidad: 1, // ✅ solo 1 unidad, para obtener el precio unitario
+  //       };
 
-        const response = await CalcularPrecioArticulo(body);
+  //       const response = await CalcularPrecioArticulo(body);
 
-        if (!mounted) return;
+  //       if (!mounted) return;
 
-        if (response?.res && response?.data?.precioTotal != null) {
-          setPrecioUnitarioCalculado(parseFloat(response.data.precioTotal));
-        } else {
-          setPrecioUnitarioCalculado(item.price || 0);
-        }
-      } catch (error) {
-        if (!mounted) return;
-        setPrecioUnitarioCalculado(item.price || 0);
-      }
-    }
+  //       if (response?.res && response?.data?.precioTotal != null) {
+  //         setPrecioUnitarioCalculado(parseFloat(response.data.precioTotal));
+  //       } else {
+  //         setPrecioUnitarioCalculado(item.price || 0);
+  //       }
+  //     } catch (error) {
+  //       if (!mounted) return;
+  //       setPrecioUnitarioCalculado(item.price || 0);
+  //     }
+  //   }
 
-    obtenerPrecioUnitario();
-    return () => (mounted = false);
-  }, [item.priceBase, item.price, item.fraccion, CalcularPrecioArticulo]);
+  //   obtenerPrecioUnitario();
+  //   return () => (mounted = false);
+  // }, [item.priceBase, item.price, item.fraccion, CalcularPrecioArticulo]);
 
   return (
     <div className="w-full grid grid-cols-5 mb-4 mt-4 py-2">
@@ -153,7 +160,7 @@ const ItemCardTC = ({ item, precioCalculado: precioDesdePadre }) => {
           )}
 
           {/* Mostrar fracción si existe */}
-          {item.fraccion && (
+          {item.tieneFraccion && (
             <p className="font-semibold text-sm mt-1">
               Fracción: <span className="font-normal">{item.fraccion} Litros</span>
             </p>
@@ -167,7 +174,7 @@ const ItemCardTC = ({ item, precioCalculado: precioDesdePadre }) => {
           ${item.price.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div> */}
         <div className="flex w-1/3 items-center text-lg font-semibold">
-          ${precioUnitarioCalculado.toLocaleString("es-ES", {
+          ${precioUnitario.toLocaleString("es-ES", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}
@@ -191,7 +198,7 @@ const ItemCardTC = ({ item, precioCalculado: precioDesdePadre }) => {
           {/* <p>${item.quantity * item.price}</p> */}
           {/* <p> ${(item.quantity * item.price).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} </p> */}
           <p>
-            ${precioCalculado.toLocaleString("es-ES", {
+            ${precioTotal.toLocaleString("es-ES", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}

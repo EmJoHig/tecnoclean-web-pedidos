@@ -58,7 +58,7 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
                   Editar
                 </button>
                 <button
-                  onClick={() => onDelete(product._id)}
+                  onClick={() => onDelete(product)}
                   className="p-1 ml-4 bg-red-500 text-white rounded"
                 >
                   Eliminar

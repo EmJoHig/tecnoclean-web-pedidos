@@ -304,3 +304,50 @@ export const updatePreciosImportarExcelPorCodigosRequest = async (token, formDat
         throw error;
     }
 };
+
+
+
+// importar update precios POR CODIGO ULTIMA VERSION
+export const migracionRequest = async (token, formDataExcel) => {
+    try {
+
+        const response = await axios.post(
+            `${API_URL}/articulos/migracion`,
+            formDataExcel,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching getmigracionRequest: ", error);
+        throw error;
+    }
+};
+
+
+// importar update stock POR CODIGO 
+export const updateStockImportarExcelPorCodigosRequest = async (token, formDataExcel) => {
+    try {
+
+        const response = await axios.post(
+            `${API_URL}/articulos/update-stock-excel-por-codigo`,
+            formDataExcel,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching updateStockImportarExcelPorCodigosRequest: ", error);
+        throw error;
+    }
+};

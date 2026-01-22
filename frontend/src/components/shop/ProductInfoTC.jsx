@@ -242,7 +242,8 @@ const ProductInfoTC = ({ productInfo }) => {
             // Si no tiene fragancia pero sí fracción
             customId = `${productInfo._id}-${selectedFraccion}`;
           }
-
+          // console.log("Custom ID para el carrito:", customId);
+          
           dispatch(
             addToCart({
               _id: customId,
@@ -254,7 +255,8 @@ const ProductInfoTC = ({ productInfo }) => {
               price: productInfo.precio,
               colors: productInfo.color,
               fragancia: validCodes.includes(productInfo.codigo)? selectedFragancia : "",
-              fraccion: selectedFraccion,
+              fraccion: productInfo.fracciones?.length === 0 ? "1" : selectedFraccion,
+              tieneFraccion: productInfo.fracciones?.length > 0,
             })
           );
         }}
