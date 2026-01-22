@@ -19,6 +19,8 @@ import {
   GetArticuloById,
   UpdateArticulo,
   DeleteArticulo,
+  Migracion,
+  ActualizarStockExcelPorCodigo
 } from "../controllers/articulos.controller.js";
 import multer from 'multer';
 
@@ -141,6 +143,12 @@ router.get("/articulos/get-articulo-id", jwtCheck, GetArticuloById);
 router.post("/articulos/editar-articulo", jwtCheck, uploadImage.single("file"), UpdateArticulo);
 
 router.delete("/articulos/eliminar-articulo/:id", jwtCheck, DeleteArticulo);
+
+// migracion
+router.post("/articulos/migracion", jwtCheck, uploadExcel.single("file"), Migracion);
+
+// update de stock por excel segun codigo del sistema y mi web
+router.post("/articulos/update-stock-excel-por-codigo", jwtCheck, uploadExcel.single("file"), ActualizarStockExcelPorCodigo);
 
 export default router;
 

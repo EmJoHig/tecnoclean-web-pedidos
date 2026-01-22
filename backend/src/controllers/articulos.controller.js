@@ -239,7 +239,11 @@ export const EnviarCarritoWsp = async (req, res) => {
   try {
     const { bodyCarritoUsuario } = req.body;
     const mensajeWSP = generarMensaje(bodyCarritoUsuario);
-    const tel = '542215937093'; // sin el + adelante
+    // const tel = '542215937093'; // sin el + adelante
+
+    // tel negocio: +54 9 2213 18-8915 
+    const tel = '542213188915 '; // sin el + adelante
+
 
     // Codificamos el mensaje para URL
     const mensajeCodificado = encodeURIComponent(mensajeWSP);
@@ -719,7 +723,8 @@ export const ActualizarPreciosAgenteN8N = async (req, res) => {
 
 
 
-// ENDPOINT PARA ACTUALIZAR PRECIOS DE ARTICULOS POR EXCEL SEGUN CODIGO DEL SISTEMA A MI WEB PEDIDOS
+// ENDPOINT PARA ACTUALIZAR PRECIOS DE ARTICULOS POR EXCEL SEGUN CODIGO DEL SISTEMA (NUEVO) A MI WEB PEDIDOS
+// LOS CODIGOS ESTAN CASI SINCRONIZADOS CON MI WEB, cambian algunos que no hay stock
 
 export const ActualizarPreciosExcelPorCodigo = async (req, res) => {
   const formDataExcel = req.file;
@@ -735,11 +740,18 @@ export const ActualizarPreciosExcelPorCodigo = async (req, res) => {
     const worksheet = workbook.Sheets[sheetName];
     const data = xlsx.utils.sheet_to_json(worksheet);
 
-    // Mapear datos desde el Excel
+    // Mapear datos desde el Excel sistema viejo
+    // const productos = data.map(item => ({
+    //   codigo: item.CODIGO?.toString().trim() || "",
+    //   descripcion: item.DETALLE?.toString().trim() || "",
+    //   precioVenta: parseFloat(item["PRECIO VENTA"]) || 0,
+    // }));
+
+    // Mapear datos desde el Excel sistema nuevo
     const productos = data.map(item => ({
-      codigo: item.CODIGO?.toString().trim() || "",
-      descripcion: item.DETALLE?.toString().trim() || "",
-      precioVenta: parseFloat(item["PRECIO VENTA"]) || 0,
+      codigo: item["*Codigo"]?.toString().trim() || "",
+      descripcion: item["*Descripcion"]?.toString().trim() || "",
+      precioVenta: parseFloat(item["*Precio de Venta"]) || 0,
     }));
 
     const resultados = [];
@@ -846,5 +858,170 @@ export const CalcularPrecioArticulo = async (req, res) => {
       res: false,
       error: "Error interno del servidor",
     });
+  }
+};
+
+
+
+
+// ENDPOINT PARA ACTUALIZAR STOCK DE ARTICULOS POR EXCEL SEGUN CODIGO DEL SISTEMA (NUEVO) A MI WEB PEDIDOS
+export const ActualizarStockExcelPorCodigo = async (req, res) => {
+  const formDataExcel = req.file;
+
+  if (!formDataExcel) {
+    return res.status(400).json({ error: "No se subió ningún archivo" });
+  }
+
+  try {
+    // Leer el archivo Excel
+    const workbook = xlsx.readFile(formDataExcel.path);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const data = xlsx.utils.sheet_to_json(worksheet);
+
+    // Mapear datos desde el Excel
+    const productos = data.map(item => ({
+      codigo: item["Código"]?.toString().trim() || "",
+      stock: parseFloat(item["Stock"]) || 0,
+    }));
+
+    const resultados = [];
+
+    for (const producto of productos) {
+      if (!producto.codigo) {
+        resultados.push({
+          codigo: null,
+          mensaje: "Producto sin código, se omitió",
+        });
+        continue;
+      }
+
+      try {
+        const productoEnDB = await Articulo.findOne({ codigo: producto.codigo });
+
+        if (productoEnDB) {
+          productoEnDB.stock = producto.stock;
+          await productoEnDB.save();
+
+          resultados.push({
+            codigo: producto.codigo,
+            mensaje: "Stock actualizado",
+            producto: {
+              descripcion: productoEnDB.descripcion,
+              stock: productoEnDB.stock,
+            },
+          });
+        } else {
+          resultados.push({
+            codigo: producto.codigo,
+            mensaje: "Producto no encontrado en la base de datos",
+          });
+        }
+      } catch (error) {
+        console.error(
+          `Error al actualizar el stock del producto con código ${producto.codigo}:`,
+          error
+        );
+        resultados.push({
+          codigo: producto.codigo,
+          mensaje: "Error al actualizar el stock",
+          error: error.message,
+        });
+      }
+    }
+
+    res.status(200).json({
+      message: "Actualización de stock completada",
+      data: resultados,
+    });
+
+  } catch (error) {
+    console.error("Error al procesar el archivo Excel:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+
+
+
+
+
+
+// ENDPOINT  PARA MIGRAR CODIGOS DE NUEVO SISTEMA A MI BD
+
+export const Migracion = async (req, res) => {
+  console.log("Iniciando migración de códigos...");
+  const archivoExcel = req.file;
+
+  if (!archivoExcel) {
+    return res.status(400).json({ error: "No se subió ningún archivo" });
+  }
+
+  try {
+    // Leer Excel
+    const workbook = xlsx.readFile(archivoExcel.path);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const data = xlsx.utils.sheet_to_json(worksheet);
+
+    const resultados = [];
+
+    for (const fila of data) {
+      const codigoBarra = fila["Codigo de Barras"]?.toString().trim();
+      const nuevoCodigo = fila["*Codigo"]?.toString().trim();
+
+      if (!codigoBarra || !nuevoCodigo) {
+        resultados.push({
+          codigoBarra: codigoBarra || null,
+          mensaje: "Fila incompleta, se omitió",
+        });
+        continue;
+      }
+
+      try {
+        const articulo = await Articulo.findOne({ codigo: codigoBarra });
+
+        if (!articulo) {
+          resultados.push({
+            codigoBarra,
+            mensaje: "Artículo no encontrado en la base de datos",
+          });
+          continue;
+        }
+
+        // Actualizar código
+        articulo.codigo = nuevoCodigo;
+        await articulo.save();
+
+        resultados.push({
+          codigoBarra,
+          nuevoCodigo,
+          mensaje: "Código actualizado correctamente",
+          articulo: {
+            descripcion: articulo.descripcion,
+            codigoAnterior: codigoBarra,
+            codigoActual: nuevoCodigo,
+          },
+        });
+
+      } catch (error) {
+        console.error(`Error con código de barras ${codigoBarra}:`, error);
+        resultados.push({
+          codigoBarra,
+          mensaje: "Error al actualizar el artículo",
+          error: error.message,
+        });
+      }
+    }
+
+    res.status(200).json({
+      message: "Actualización de códigos completada",
+      totalProcesados: data.length,
+      resultados,
+    });
+
+  } catch (error) {
+    console.error("Error al procesar el Excel:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 };
