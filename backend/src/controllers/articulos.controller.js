@@ -242,7 +242,7 @@ export const EnviarCarritoWsp = async (req, res) => {
     // const tel = '542215937093'; // sin el + adelante
 
     // tel negocio: +54 9 2213 18-8915 
-    const tel = '542213188915 '; // sin el + adelante
+    const tel = '542213188915'; // sin el + adelante
 
 
     // Codificamos el mensaje para URL
