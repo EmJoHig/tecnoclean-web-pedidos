@@ -111,8 +111,8 @@ const ProductTC = (props) => {
               //   )
               // }
               onClick={() => {
-                console.log("Agregar al carrito props:");
-                console.log(props);
+                // console.log("Agregar al carrito props:");
+                // console.log(props);
 
 
                 if (props.fracciones && props.fracciones.length > 0) {

@@ -59,14 +59,6 @@ const ItemCardTC = ({ item }) => {
   // }, [item.quantity, item.fraccion, precioDesdePadre, item.priceBase, item.price, CalcularPrecioArticulo]);
 
 
-  const validCodes = [
-    "15205",
-    // "7790126120210",
-    // "7790126137010"
-  ];
-
-  const shouldShowFragancia = validCodes.includes(item.codigo);
-
 
   // 🧮 Llama al método del context para calcular el precio
   // const obtenerPrecio = async () => {
@@ -155,7 +147,7 @@ const ItemCardTC = ({ item }) => {
         <div className="col-span-5 mdl:col-span-3 flex flex-col items-start text-sm text-gray-700 ml-4">
           <h1 className="font-titleFont font-semibold text-lg">{item.name}</h1>
           {/* Mostrar la fragancia solo si el código es válido */}
-          {shouldShowFragancia && (
+          {item.tienefragancia && (
             <p className="font-semibold text-sm mt-1">Fragancia: {item.fragancia}</p>
           )}
 

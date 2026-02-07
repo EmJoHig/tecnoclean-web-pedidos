@@ -19,13 +19,6 @@ const ProductInfoTC = ({ productInfo }) => {
   };
 
 
-  // CAPO ARREGLA ESTO TAMBIEN
-  const validCodes = ["15205"];
-
-
-
-  // const fracciones = ["0.5", "1", "1.5", "2", "2.25", "2.5"];
-
 
   useEffect(() => {
     GetFragancias();
@@ -73,7 +66,7 @@ const ProductInfoTC = ({ productInfo }) => {
       <hr />
 
       {/* Selección de Fragancia */}
-      {validCodes.includes(productInfo.codigo) && (
+      {productInfo.tienefragancia && (
         <div className="mt-4">
           <label htmlFor="fragancia" className="block text-sm font-medium text-gray-700">
             Selecciona una fragancia
@@ -230,7 +223,7 @@ const ProductInfoTC = ({ productInfo }) => {
           let customId = productInfo._id;
 
           // Si tiene código válido (usa fragancias)
-          if (validCodes.includes(productInfo.codigo)) {
+          if (productInfo.tienefragancia) {
             if (selectedFragancia && selectedFraccion) {
               customId = `${productInfo._id}-${selectedFragancia}-${selectedFraccion}`;
             } else if (selectedFragancia) {
@@ -242,7 +235,6 @@ const ProductInfoTC = ({ productInfo }) => {
             // Si no tiene fragancia pero sí fracción
             customId = `${productInfo._id}-${selectedFraccion}`;
           }
-          // console.log("Custom ID para el carrito:", customId);
           
           dispatch(
             addToCart({
@@ -254,7 +246,8 @@ const ProductInfoTC = ({ productInfo }) => {
               badge: null,
               price: productInfo.precio,
               colors: productInfo.color,
-              fragancia: validCodes.includes(productInfo.codigo)? selectedFragancia : "",
+              tienefragancia: productInfo.tienefragancia,
+              fragancia: productInfo.tienefragancia ? selectedFragancia : "",
               fraccion: productInfo.fracciones?.length === 0 ? "1" : selectedFraccion,
               tieneFraccion: productInfo.fracciones?.length > 0,
             })
