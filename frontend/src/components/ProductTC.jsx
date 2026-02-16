@@ -22,10 +22,6 @@ const ProductTC = (props) => {
   const navigate = useNavigate();
   const productItem = props;
 
-  // CAPO ARREGLA ESTO
-  const validCodes = ["15205"];
-
-
   const handleProductDetails = () => {
 
     navigate(`/articulo/${encodeURIComponent(props.descripcion)}`, {
@@ -40,6 +36,21 @@ const ProductTC = (props) => {
     setWishList(wishList.push(props));
     console.log(wishList);
   };
+
+  const tieneDescuento =
+    props.familiaObj?.descuento?.activo;
+
+  const porcentajeDescuento =
+    props.familiaObj?.descuento?.porcentaje || 0;
+
+  const precioOriginal = props.precio || 0;
+
+  const precioConDescuento =
+    tieneDescuento && porcentajeDescuento > 0
+      ? precioOriginal - (precioOriginal * porcentajeDescuento) / 100
+      : precioOriginal;
+
+
   return (
     <div className="w-full relative group mx-auto max-w-xs transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
       <div className="relative overflow-hidden rounded-lg shadow-lg bg-white">
@@ -52,17 +63,45 @@ const ProductTC = (props) => {
         </div>
 
         {/* Datos sobre precio*/}
+        <div className="absolute bottom-0 w-full bg-white bg-opacity-90 p-4 z-20">
+          <h2 className="text-lg font-bold text-primeColor text-xl">
+            {props.descripcion}
+          </h2>
+
+          <div className="flex items-center justify-between mt-1">
+
+            <div className="flex flex-col">
+
+              {tieneDescuento && porcentajeDescuento > 0 && (
+                <span className="text-sm font-semibold text-green-600">
+                  -{porcentajeDescuento}% OFF
+                </span>
+              )}
+
+              <p className="text-xl font-bold text-[#4a4949]">
+                $ {precioConDescuento.toLocaleString("es-ES", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+
+              {tieneDescuento && porcentajeDescuento > 0 && (
+                <p className="text-sm line-through text-gray-400">
+                  $ {precioOriginal.toLocaleString("es-ES", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+              )}
+
+            </div>
+
+
+          </div>
+        </div>
+
         {/* <div className="absolute bottom-0 w-full bg-white bg-opacity-90 p-4 z-20">
           <h2 className="text-lg font-bold text-primeColor text-xl">{props.descripcion}</h2>
-          <p className="text-xl font-bold text-[#4a4949]">
-            $ {props.precio.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-        </div> */}
-
-        <div className="absolute bottom-0 w-full bg-white bg-opacity-90 p-4 z-20">
-          <h2 className="text-lg font-bold text-primeColor text-xl">{props.descripcion}</h2>
-
-          {/* Contenedor flex para alinear precio + dropdown */}
           <div className="flex items-center justify-between mt-1">
             <p className="text-xl font-bold text-[#4a4949]">
               $ {props.precio.toLocaleString("es-ES", {
@@ -70,50 +109,18 @@ const ProductTC = (props) => {
                 maximumFractionDigits: 2,
               })}
             </p>
-
-            {/* Dropdown de fracciones (solo si existen) */}
-            {/* {props.fracciones && props.fracciones.length > 0 && (
-              <select
-                className="border border-gray-300 rounded-md text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  Elegí una fracción
-                </option>
-                {props.fracciones.map((f, index) => (
-                  <option key={index} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
-            )} */}
           </div>
-        </div>
+        </div> */}
 
 
-        {/* Controles de carrito y wishlist */}
+
+
+
+        {/* Controles de carrito */}
         <div className="absolute top-4 right-4 z-30">
           <ul className="flex gap-4">
             <li
-              // onClick={() =>
-              //   dispatch(
-              //     addToCart({
-              //       _id: props._id,
-              //       codigo: props.codigo,
-              //       name: props.descripcion,
-              //       quantity: 1,
-              //       imagen: props.imagen,
-              //       badge: props.badge,
-              //       price: props.precio,
-              //       colors: props.color,
-              //       fragancia: "tu mami",
-              //     })
-              //   )
-              // }
               onClick={() => {
-                // console.log("Agregar al carrito props:");
-                // console.log(props);
-
 
                 if (props.fracciones && props.fracciones.length > 0) {
                   // Redirigir al detalle si el código es uno de los especiales

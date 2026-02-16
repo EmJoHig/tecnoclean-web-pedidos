@@ -10,15 +10,30 @@ import {
 } from "../../redux/orebiSlice";
 import { API_URL } from "../../config";
 
-const ItemCardTC = ({ item }) => {
+const ItemCardTC = ({ item, precios }) => {
   const dispatch = useDispatch();
 
-  const precioBase = item.priceBase || item.price;
-  const fraccion = item.fraccion || 1;
-  const cantidad = item.quantity || 0;
+  // const precioBase = item.priceBase || item.price;
+  // const fraccion = item.fraccion || 1;
+  // const cantidad = item.quantity || 0;
 
-  const precioUnitario = precioBase * fraccion;
-  const precioTotal = precioUnitario * cantidad;
+  // const precioUnitario = precioBase * fraccion;
+  // const precioTotal = precioUnitario * cantidad;
+
+  const {
+    precioUnit,
+    subtotal,
+    descuento,
+    porcentajeDescuento,
+    total
+  } = precios;
+
+  const precioUnitConDescuento =
+    descuento > 0
+      ? precioUnit - (precioUnit * porcentajeDescuento) / 100
+      : precioUnit;
+
+
   // const { CalcularPrecioArticulo } = useArticulos();
 
   // const [precioCalculado, setPrecioCalculado] = useState(precioDesdePadre ?? 0);
@@ -162,15 +177,42 @@ const ItemCardTC = ({ item }) => {
 
       </div>
       <div className="col-span-5 mdl:col-span-3 flex items-center justify-between py-4 mdl:py-0 px-4 mdl:px-0 gap-6 mdl:gap-0">
+
         {/* <div className="flex w-1/3 items-center text-lg font-semibold">
-          ${item.price.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </div> */}
-        <div className="flex w-1/3 items-center text-lg font-semibold">
-          ${precioUnitario.toLocaleString("es-ES", {
+          ${precioUnit.toLocaleString("es-ES", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}
+        </div> */}
+
+
+        <div className="flex w-1/3 flex-col items-start text-lg font-semibold">
+
+          {descuento > 0 && (
+            <span className="text-sm text-green-600">
+              -{porcentajeDescuento}% OFF
+            </span>
+          )}
+
+          <p>
+            ${precioUnitConDescuento.toLocaleString("es-ES", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
+
+          {descuento > 0 && (
+            <p className="text-sm line-through text-gray-400">
+              ${precioUnit.toLocaleString("es-ES", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </p>
+          )}
+
         </div>
+
+
         <div className="w-1/3 flex items-center gap-6 text-lg">
           <span
             onClick={() => dispatch(drecreaseQuantity({ _id: item._id }))}
@@ -186,16 +228,40 @@ const ItemCardTC = ({ item }) => {
             +
           </span>
         </div>
-        <div className="w-1/3 flex items-center font-titleFont font-bold text-lg">
-          {/* <p>${item.quantity * item.price}</p> */}
-          {/* <p> ${(item.quantity * item.price).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} </p> */}
+        <div className="w-1/3 flex flex-col font-titleFont font-bold text-lg">
+
+          {descuento > 0 && (
+            <span className="text-sm text-green-600">
+              -{porcentajeDescuento}% OFF
+            </span>
+          )}
+
+          <p>
+            ${total.toLocaleString("es-ES", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
+
+          {descuento > 0 && (
+            <p className="text-sm line-through text-gray-400">
+              ${subtotal.toLocaleString("es-ES", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </p>
+          )}
+
+        </div>
+
+        {/* <div className="w-1/3 flex items-center font-titleFont font-bold text-lg">
           <p>
             ${precioTotal.toLocaleString("es-ES", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

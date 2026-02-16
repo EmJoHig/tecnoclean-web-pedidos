@@ -40,6 +40,7 @@ import ShopPage from "./pages/ShopPage";
 import CartPage from './pages/CartPage';
 import DetalleArticuloPage from "./pages/DetalleArticuloPage";
 import AdministrarArticulosPage from "./pages/AdministrarArticulosPage";
+import FamiliasDescuentosPage from './pages/FamiliasDescuentosPage';
 
 // import RegisterPage from "./pages/RegisterPage";
 // import { LoginPage } from "./pages/LoginPage";
@@ -131,6 +132,7 @@ function App() {
                       {/* <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} /> */}
                       <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                         <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} />
+                        <Route path="/descuentos-familias" element={<FamiliasDescuentosPage />} />
                       </Route>
                       
                     </Route>

@@ -33,36 +33,51 @@ const ProductInfoTC = ({ productInfo }) => {
   }, [fragancias, selectedFragancia]);
 
 
-  // const renderDescripcion = () => {
-  //   if (!productInfo.descripcion) {
-  //     return null; // or handle accordingly if product.des is not defined
-  //   }
-
-  //   const descripcion = productInfo.descripcion.split(/:(.*?)-/).map((part, index) => {
-  //     return (
-  //       <span key={index} style={index % 2 === 1 ? highlightStyle : {}}>
-  //         {part}
-  //       </span>
-  //     );
-  //   });
-
-  //   return <>{descripcion}</>;
-  // };
   const dispatch = useDispatch();
+
+  const tieneDescuento =
+    productInfo.familiaObj?.descuento?.activo;
+
+  const porcentajeDescuento =
+    productInfo.familiaObj?.descuento?.porcentaje || 0;
+
+  const precioOriginal = productInfo.precio || 0;
+
+  const precioConDescuento =
+    tieneDescuento && porcentajeDescuento > 0
+      ? precioOriginal - (precioOriginal * porcentajeDescuento) / 100
+      : precioOriginal;
+
+
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-4xl">{productInfo.descripcion}</h2>
-      <p className="text-4xl font-bold">
-        {/* $ {productInfo.precio} */}
+      <div className="flex flex-col">
 
-        $ {(productInfo.precio ?? 0).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        {tieneDescuento && porcentajeDescuento > 0 && (
+          <span className="text-sm font-semibold text-green-600">
+            -{porcentajeDescuento}% OFF
+          </span>
+        )}
 
+        <p className="text-4xl font-bold">
+          $ {precioConDescuento.toLocaleString("es-ES", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </p>
 
-        {/* <span className="text-xl font-semibold line-through ml-2">540</span>
-        <span style={{fontSize: '20px'}} className="text-xs ml-2 inline-flex items-center px-3 py-3 rounded-full bg-green-600 text-white">
-          10%
-        </span> */}
-      </p>
+        {tieneDescuento && porcentajeDescuento > 0 && (
+          <p className="text-lg line-through text-gray-400">
+            $ {precioOriginal.toLocaleString("es-ES", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
+        )}
+
+      </div>
+
       <hr />
 
       {/* Selección de Fragancia */}
@@ -209,8 +224,8 @@ const ProductInfoTC = ({ productInfo }) => {
         onClick={() => {
           // Si el código requiere fragancia, se la agregamos al _id
           if (productInfo._fracciones && productInfo._fracciones.length > 0) {
-            console.log("Producto con fracciones disponibles:");
-            console.log(productInfo._fracciones);
+            // console.log("Producto con fracciones disponibles:");
+            // console.log(productInfo._fracciones);
           }
 
           // antes
@@ -235,7 +250,7 @@ const ProductInfoTC = ({ productInfo }) => {
             // Si no tiene fragancia pero sí fracción
             customId = `${productInfo._id}-${selectedFraccion}`;
           }
-          
+
           dispatch(
             addToCart({
               _id: customId,
@@ -250,6 +265,7 @@ const ProductInfoTC = ({ productInfo }) => {
               fragancia: productInfo.tienefragancia ? selectedFragancia : "",
               fraccion: productInfo.fracciones?.length === 0 ? "1" : selectedFraccion,
               tieneFraccion: productInfo.fracciones?.length > 0,
+              familiaObj: productInfo.familiaObj, // Agregamos la familia completa para cálculos futuros
             })
           );
         }}

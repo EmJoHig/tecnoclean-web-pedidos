@@ -7,6 +7,7 @@ import ProductBannerTC from "../components/shop/ProductBannerTC";
 import ShopSideNavTC from "../components/shop/ShopSideNavTC";
 import { filterArticulos } from "../redux/orebiSlice";
 import { useArticulos } from "../context/articulosContext";
+import { useNavigate } from "react-router-dom";
 import ProductTable from "./ProductTable";
 import ProductModal from "./ProductModal";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
@@ -14,6 +15,7 @@ import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 const AdministrarArticulosPage = () => {
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const { familias,
     loading,
@@ -203,7 +205,7 @@ const AdministrarArticulosPage = () => {
   //DELETE
   const handleDeleteArticulo = async (producto) => {
     setProductoAEliminar(producto);
-  setDeleteModalOpen(true);
+    setDeleteModalOpen(true);
     // try {
 
     //   const resp = await deleteArticulo(id);
@@ -226,26 +228,26 @@ const AdministrarArticulosPage = () => {
 
 
   const confirmDeleteArticulo = async () => {
-  try {
-    const resp = await deleteArticulo(productoAEliminar._id);
+    try {
+      const resp = await deleteArticulo(productoAEliminar._id);
 
-    if (resp === "") {
-      alert("✅ Artículo eliminado con éxito");
-    } else {
-      alert("❌ No se pudo eliminar el artículo");
+      if (resp === "") {
+        alert("✅ Artículo eliminado con éxito");
+      } else {
+        alert("❌ No se pudo eliminar el artículo");
+      }
+
+      const respArt = await getArticulos();
+      setProducts(respArt);
+
+    } catch (error) {
+      console.error("Error al eliminar el producto:", error);
+      alert("❌ Error inesperado al eliminar");
+    } finally {
+      setDeleteModalOpen(false);
+      setProductoAEliminar(null);
     }
-
-    const respArt = await getArticulos();
-    setProducts(respArt);
-
-  } catch (error) {
-    console.error("Error al eliminar el producto:", error);
-    alert("❌ Error inesperado al eliminar");
-  } finally {
-    setDeleteModalOpen(false);
-    setProductoAEliminar(null);
-  }
-};
+  };
 
 
   return (
@@ -263,6 +265,13 @@ const AdministrarArticulosPage = () => {
             className="p-2 bg-green-600 text-white rounded"
           >
             Crear Producto
+          </button>
+
+          <button
+            onClick={() => navigate("/descuentos-familias")}
+            className="p-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+          >
+            % Descuentos por Familia
           </button>
         </div>
 

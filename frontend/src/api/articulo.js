@@ -161,6 +161,28 @@ export const getFamiliasConArticulosRequest = async (token) => {
 };
 
 
+export const UpdateDescuentoFamiliaRequest = async (token, bodyDtoFamilia) => {
+    console.log("En UpdateDescuentoFamiliaRequest, bodyDtoFamilia:", bodyDtoFamilia);
+    try {
+        const response = await axios.post(
+            `${API_URL}/familias/update-descuento-familia`,
+            { bodyDtoFamilia: bodyDtoFamilia },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching UpdateDescuentoFamiliaRequest: ", error);
+        throw error;
+    }
+};
+
+
 export const getFraganciasRequest = async (token) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/getFragancias`, {

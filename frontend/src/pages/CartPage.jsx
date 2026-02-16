@@ -11,6 +11,7 @@ import { useArticulos } from "../context/articulosContext";
 import { FaSpinner, FaCheck } from "react-icons/fa";
 import { useAuth0 } from "@auth0/auth0-react";
 import { toast } from "react-toastify";
+import { calcularPrecioItem } from "../utils/calcularPrecioDescuento";
 
 const CartPage = () => {
   const dispatch = useDispatch();
@@ -30,6 +31,17 @@ const CartPage = () => {
   const [showModalConfirm, setShowModalConfirm] = useState(false);
 
   const [loadingSendMsg, setLoadingSendMsg] = useState(false);
+
+  // descuentos
+  useEffect(() => {
+    const total = products.reduce((acc, item) => {
+      const precios = calcularPrecioItem(item);
+      return acc + precios.total;
+    }, 0);
+
+    setTotalAmt(total);
+  }, [products]);
+
 
 
   // useEffect(() => {
@@ -52,17 +64,17 @@ const CartPage = () => {
   //   };
   // };
 
-  useEffect(() => {
-    const total = products.reduce((acc, item) => {
-      const precioBase = item.priceBase || item.price;
-      const fraccion = item.fraccion || 1;
-      const cantidad = item.quantity || 0;
+  // useEffect(() => {
+  //   const total = products.reduce((acc, item) => {
+  //     const precioBase = item.priceBase || item.price;
+  //     const fraccion = item.fraccion || 1;
+  //     const cantidad = item.quantity || 0;
 
-      return acc + precioBase * fraccion * cantidad;
-    }, 0);
+  //     return acc + precioBase * fraccion * cantidad;
+  //   }, 0);
 
-    setTotalAmt(total);
-  }, [products]);
+  //   setTotalAmt(total);
+  // }, [products]);
 
 
   useEffect(() => {
@@ -206,14 +218,30 @@ const CartPage = () => {
               <h2>Sub Total</h2>
             </div>
             <div className="mt-5">
-              {products.map((item) => (
+              {products.map((item) => {
+                const precios = calcularPrecioItem(item);
+
+                return (
+                  <div
+                    key={item._id}
+                    className="bg-white border rounded-xl shadow-md mb-4 transition-transform hover:scale-[1.01]"
+                  >
+                    <ItemCardTC
+                      key={item._id}
+                      item={item}
+                      precios={precios}
+                    />
+                  </div>
+                );
+              })}
+              {/* {products.map((item) => (
                 <div
                   key={item._id}
                   className="bg-white border rounded-xl shadow-md mb-4 transition-transform hover:scale-[1.01]"
                 >
                   <ItemCardTC item={item} />
                 </div>
-              ))}
+              ))} */}
             </div>
 
             <button

@@ -4,6 +4,7 @@ import {
   getArticulosRequest,
   getFamiliasRequest,
   getFamiliasConArticulosRequest,
+  UpdateDescuentoFamiliaRequest,
   getFraganciasRequest,
   getArticulosCategoriaRequest,
   getArticulosQueryRequest,
@@ -48,7 +49,7 @@ export function ArticuloProvider({ children }) {
 
   const [mostrarCargarMas, setMostrarCargarMas] = useState(true);
 
-  
+
   const updateOffset = (newOffset) => {
     setOffset(newOffset);
   };
@@ -209,8 +210,36 @@ export function ArticuloProvider({ children }) {
     }
   };
 
+  const UpdateDescuentoFamilia = async (bodyDtoFamilia) => {
+    try {
 
-const GetFragancias = async () => {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await UpdateDescuentoFamiliaRequest(token, bodyDtoFamilia);
+      if (res && res.status === 200) {
+        return "";
+      } else {
+        return "Error al editar el descuento de familia";
+      }
+    } catch (error) {
+      console.error('Error updating descuento familia:', error);
+      return "Error al editar el descuento de familia";
+    }
+  };
+  
+  
+  // const  = async (id, descuento) => {
+  //   return fetch(`${API_URL}/familias/${id}/descuento`, {
+  //     method: "PUT",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify(descuento),
+  //   });
+  // };
+
+
+  const GetFragancias = async () => {
     try {
 
       const token = await getAccessTokenSilently({
@@ -497,6 +526,7 @@ const GetFragancias = async () => {
         GetArticulosQuery,
         GetFamilias,
         GetFamiliasConArticulos,
+        UpdateDescuentoFamilia,
         GetFragancias,
         deleteArticulo,
         createArticulo,

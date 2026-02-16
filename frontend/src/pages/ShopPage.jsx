@@ -13,10 +13,14 @@ const ShopPage = () => {
 
   const dispatch = useDispatch();
 
-  const { articulos, loading, GetArticulosPorCategoria } = useArticulos();
+  const { articulos, loading, GetArticulosPorCategoria, familias, GetFamilias } = useArticulos();
   // const { familias, GetFamilias } = useArticulos();
   const [itemsPerPage, setItemsPerPage] = useState(9);
   const [selectedSeccion, setSelectedSeccion] = useState(null);
+
+
+  const [showPromo, setShowPromo] = useState(true);
+
 
   const checkedCategorys = useSelector(
     (state) => state.orebiReducer.checkedCategorys
@@ -42,8 +46,26 @@ const ShopPage = () => {
   // }, []);
 
   useEffect(() => {
+    GetFamilias();
+  }, []);
+
+
+  useEffect(() => {
     GetArticulosPorCategoria(checkedCategorys, null, 0);
   }, [checkedCategorys]);
+
+  const familiasConDescuento = familias?.filter(
+    (fam) =>
+      fam.descuento?.activo === true &&
+      fam.descuento?.porcentaje > 0
+  );
+
+  const promoTexto = familiasConDescuento?.map((fam) => (
+    <span key={fam._id} className="flex items-center gap-1">
+      🎁 <span className="font-semibold">{fam.descuento.porcentaje}% OFF</span> en {fam.descripcion}
+    </span>
+  ));
+
 
   const secciones = [
     { id: "TODAS", label: "TODAS" },
@@ -88,7 +110,7 @@ const ShopPage = () => {
   };
 
 
- 
+
   //probar que cosa no anda si  descomento esto
   // useEffect(() => {
   //   // Asegúrate de que 'articulos' esté disponible antes de despachar
@@ -132,6 +154,32 @@ const ShopPage = () => {
 
   return (
     <>
+      {showPromo && familiasConDescuento?.length > 0 && (
+        <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white shadow-md">
+
+          <div className="max-w-container mx-auto px-4 py-2 flex items-center justify-center">
+
+            <div className="text-sm md:text-[15px] font-medium tracking-wide flex items-center gap-4 flex-wrap justify-center">
+              {promoTexto.map((promo, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && <span className="opacity-60">•</span>}
+                  {promo}
+                </React.Fragment>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setShowPromo(false)}
+              className="absolute right-4 text-white/70 hover:text-white text-lg transition"
+            >
+              ✕
+            </button>
+
+          </div>
+        </div>
+      )}
+
+
       <HeaderBottomTC />
       <div className="max-w-container mx-auto px-4">
         <BreadcrumbsTC title="Tienda" />
