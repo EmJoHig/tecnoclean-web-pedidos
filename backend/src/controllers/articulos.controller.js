@@ -10,6 +10,7 @@ import fs from "fs";
 import xlsx from "xlsx";
 
 import whatsapp from "../libs/whatsapp.js";
+import mongoose from "mongoose";
 
 // const app = express();
 // app.use(express.json());
@@ -43,32 +44,73 @@ export const GetArticulos = async (req, res) => {
 
 export const GetArticulosCategoria = async (req, res) => {
 
-  //obtener de la request los codigos de las categorias seleccionadas
-  let checkedCategorys = req.query.checkedCategorys;
-  const limit = 10;  // Número de artículos a cargar por cada solicitud
-  const offset = req.query.offset || 0;  // El offset (a partir de qué artículo cargar)
+  let { checkedCategorys, offset = 0 } = req.query;
 
-  let searchOptions = {};
+  const limit = 10;
 
-  // articulos con stock mayor a cero
-  searchOptions.stock = { $gt: 0 };
+  let searchOptions = {
+    stock: { $gt: 0 }
+  };
 
-  let articulos = null;
+  if (checkedCategorys) {
+    // Si viene como string, lo pasamos a array
+    if (typeof checkedCategorys === "string") {
+      checkedCategorys = [checkedCategorys];
+    }
 
-  if (checkedCategorys != undefined && checkedCategorys.length > 0) {
-    searchOptions.familiaArticulo = { $in: checkedCategorys };
+    const validIds = checkedCategorys
+      .map(cat => {
+        // Si es objeto, sacamos el _id
+        if (typeof cat === "object" && cat._id) {
+          return cat._id;
+        }
+        return cat;
+      })
+      .filter(id => mongoose.Types.ObjectId.isValid(id))
+      .map(id => new mongoose.Types.ObjectId(id));
 
-    articulos = await Articulo.find(searchOptions)
-      .skip(offset)
-      .limit(limit)
-      .lean();
-  } else {
-    // Si no hay categorías seleccionadas, cargar todos los artículos con paginación
-    articulos = await Articulo.find({ stock: { $gt: 0 } })
-      .skip(offset)
-      .limit(limit)
-      .lean();
+    if (validIds.length > 0) {
+      searchOptions.familiaArticulo = { $in: validIds };
+    }
   }
+
+  // 🔥 QUERY FINAL
+  const articulos = await Articulo.find(searchOptions)
+    .skip(Number(offset))
+    .limit(limit)
+    .populate(
+      "familiaArticulo",
+      "descripcion codigo descuento"
+    )
+    .lean();
+
+  // v1
+  //obtener de la request los codigos de las categorias seleccionadas
+  // let checkedCategorys = req.query.checkedCategorys;
+  // const limit = 10;  // Número de artículos a cargar por cada solicitud
+  // const offset = req.query.offset || 0;  // El offset (a partir de qué artículo cargar)
+
+  // let searchOptions = {};
+
+  // // articulos con stock mayor a cero
+  // searchOptions.stock = { $gt: 0 };
+
+  // let articulos = null;
+
+  // if (checkedCategorys != undefined && checkedCategorys.length > 0) {
+  //   searchOptions.familiaArticulo = { $in: checkedCategorys };
+
+  //   articulos = await Articulo.find(searchOptions)
+  //     .skip(offset)
+  //     .limit(limit)
+  //     .lean();
+  // } else {
+  //   // Si no hay categorías seleccionadas, cargar todos los artículos con paginación
+  //   articulos = await Articulo.find({ stock: { $gt: 0 } })
+  //     .skip(offset)
+  //     .limit(limit)
+  //     .lean();
+  // }
 
 
   if (!articulos) {
@@ -148,6 +190,54 @@ export const GetFamiliasConArticulos = async (req, res) => {
   }
 };
 
+// UPDATE DESCUENTO FAMILIA
+export const UpdateDescuentoFamilia = async (req, res) => {
+  try {
+    const { bodyDtoFamilia } = req.body;
+    // console.log("Datos recibidos para actualizar descuento de familia:", { bodyDtoFamilia });
+
+    if (!bodyDtoFamilia._id || bodyDtoFamilia.porcentaje == null) {
+      return res.status(400).json({ message: "ID de familia y datos de descuento son requeridos" });
+    }
+
+    if (bodyDtoFamilia?.porcentaje == null) {
+      return res.status(400).json({ message: "Datos de descuento son requeridos" });
+    }
+
+    const activo = bodyDtoFamilia.activo;
+    const porcentaje = Number(bodyDtoFamilia.porcentaje);
+
+    if (Number.isNaN(porcentaje) || porcentaje < 0 || porcentaje > 100) {
+      return res.status(400).json({ message: "Porcentaje inválido (0 a 100)" });
+    }
+
+    const familiaActualizada = await Familia.findByIdAndUpdate(
+      bodyDtoFamilia._id,
+      {
+        $set: {
+          "descuento.activo": activo,
+          "descuento.porcentaje": porcentaje,
+        },
+      },
+      { new: true }
+    );
+
+    if (!familiaActualizada) {
+      return res.status(404).json({ message: "Familia no encontrada" });
+    }
+
+    return res.status(200).json({
+      message: "Descuento de familia actualizado exitosamente",
+      data: familiaActualizada,
+      res: true,
+    });
+
+
+  } catch (error) {
+    console.error("Error al actualizar el descuento de familia:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
 
 // GET FRAGANCIAS TODAS
 export const GetFragancias = async (req, res) => {

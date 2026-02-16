@@ -9,6 +9,10 @@ const FamiliaSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "GrupoFamilia",  // el nombre EXACTO del modelo GrupoFamilia
       required: true
+    },
+    descuento: {
+      activo: { type: Boolean, default: false },
+      porcentaje: { type: Number, default: 0, min: 0, max: 100 }
     }
   },
   {
