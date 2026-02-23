@@ -41,6 +41,8 @@ export function ArticuloProvider({ children }) {
 
   const [familias, setFamilias] = useState([]);
 
+  const [familiasConArticulos, setFamiliasConArticulos] = useState([]);
+
   const [fragancias, setFragancias] = useState([]);
 
   const [offset, setOffset] = useState(10);
@@ -202,7 +204,7 @@ export function ArticuloProvider({ children }) {
       });
 
       const res = await getFamiliasConArticulosRequest(token);
-      setFamilias(res.data);
+      setFamiliasConArticulos(res.data);
       return res.data;
     } catch (error) {
       console.error('Error fetching articulos:', error);
@@ -520,6 +522,7 @@ export function ArticuloProvider({ children }) {
         articulos,
         articulosQuery,
         familias,
+        familiasConArticulos,
         fragancias,
         getArticulos,
         GetArticulosPorCategoria,

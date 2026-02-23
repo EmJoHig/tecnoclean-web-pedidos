@@ -17,6 +17,7 @@ const CategoryTC = () => {
     updateOffset,
     mostrarCargarMas,
     familias,
+    familiasConArticulos,
     GetFamiliasConArticulos,
   } = useArticulos();
 
@@ -27,13 +28,13 @@ const CategoryTC = () => {
 
   // Agrupar familias por grupo dentro de useEffect y manejar loading
   useEffect(() => {
-    if (!familias) return;
+    if (!familiasConArticulos) return;
 
     setLoading(true);
 
     const resultado = {};
 
-    familias.forEach((familia) => {
+    familiasConArticulos.forEach((familia) => {
       const grupoDescripcion = familia.grupoId?.descripcion;
 
       if (!grupoDescripcion || grupoDescripcion.trim() === "") return;
@@ -47,7 +48,7 @@ const CategoryTC = () => {
 
     setFamiliasAgrupadas(resultado);
     setLoading(false);
-  }, [familias]);
+  }, [familiasConArticulos]);
 
   useEffect(() => {
     GetFamiliasConArticulos();

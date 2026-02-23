@@ -6,7 +6,8 @@ const ProductModal = ({ product, onClose, onSave, familias }) => {
   const [descripcion, setDescripcion] = useState(product?.descripcion || "");
   const [familia, setFamilia] = useState(product?.familiaArticulo?._id || "");
   const [precio, setPrecio] = useState(product?.precio || "");
-  const [stock, setStock] = useState(product?.stock || "");
+  // const [stock, setStock] = useState(product?.stock || "");
+  const [stock, setStock] = useState(product?.stock ?? "");
   const [imagen, setImagen] = useState(product?.imagen ?? "");
 
   const handleImageChange = (e) => {
@@ -16,7 +17,7 @@ const ProductModal = ({ product, onClose, onSave, familias }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!codigo || !descripcion || !precio || !stock) { //|| !familia
+    if (!codigo.trim() || !descripcion.trim() || precio === "" || stock === "") {
       alert("Por favor, completa todos los campos.");
       return;
     }
@@ -33,8 +34,8 @@ const ProductModal = ({ product, onClose, onSave, familias }) => {
     formData.append("precio", parseInt(precio, 10));
     formData.append("stock", parseInt(stock, 10));
     formData.append("file", imagen);
-  
-    console.log("formData:", formData);
+
+    // console.log("formData:", formData);
 
     // const formJson = Object.fromEntries(formData.entries());
 

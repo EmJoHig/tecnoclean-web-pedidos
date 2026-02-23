@@ -206,7 +206,7 @@ const CartPage = () => {
 
   return (
     <>
-      <HeaderBottomTC />
+      <HeaderBottomTC mode="detalle" />
       <div className="max-w-container mx-auto px-4">
         <BreadcrumbsTC title="Carrito de compras" />
         {products.length > 0 ? (

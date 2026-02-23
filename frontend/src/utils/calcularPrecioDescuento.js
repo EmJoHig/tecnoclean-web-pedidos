@@ -16,8 +16,8 @@ export function calcularPrecioItem(item) {
     : 0;
 
   const totalConDescuento = subtotal - descuento;
-  console.log(`Calculando precio para ${JSON.stringify(item)}`);
-  
+  //console.log(`Calculando precio para ${JSON.stringify(item)}`);
+
   return {
     precioUnit,
     subtotal,

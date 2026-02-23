@@ -10,15 +10,13 @@ import { useArticulos } from "../context/articulosContext";
 
 const DetalleArticuloPage = () => {
 
-  // const { articulos, GetArticulosPorCategoria } = useArticulos();
-  // const { familias, GetFamilias } = useArticulos();
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
 
   return (
     <>
-      <HeaderBottomTC />
+      <HeaderBottomTC mode="detalle" />
       <div className="max-w-container mx-auto px-4">
         <DetalleArticuloTC />
       </div>

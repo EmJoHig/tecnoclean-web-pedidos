@@ -38,8 +38,24 @@ const AdministrarArticulosPage = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [productoAEliminar, setProductoAEliminar] = useState(null);
 
+  const [familiaSeleccionada, setFamiliaSeleccionada] = useState("");
+
+  const productosFiltrados = familiaSeleccionada
+    ? products.filter(p => p.familiaArticulo?._id === familiaSeleccionada)
+    : products;
+
+  const familiasOrdenadas = [...(familias || [])].sort((a, b) =>
+    a.descripcion.localeCompare(b.descripcion, "es", { sensitivity: "base" })
+  );
+
 
   const [fileExcel, setFileExcel] = useState(null);
+
+
+  useEffect(() => {
+    GetFamilias();
+  }, []);
+
 
   useEffect(() => {
     // GetFamilias();
@@ -269,7 +285,7 @@ const AdministrarArticulosPage = () => {
 
           <button
             onClick={() => navigate("/descuentos-familias")}
-            className="p-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+            className="p-2 ml-4 bg-purple-600 text-white rounded hover:bg-purple-700"
           >
             % Descuentos por Familia
           </button>
@@ -346,6 +362,24 @@ const AdministrarArticulosPage = () => {
         </div>
 
 
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Filtrar por familia
+          </label>
+
+          <select
+            value={familiaSeleccionada}
+            onChange={(e) => setFamiliaSeleccionada(e.target.value)}
+            className="px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <option value="">Todas las familias</option>
+            {familiasOrdenadas?.map((familia) => (
+              <option key={familia._id} value={familia._id}>
+                {familia.descripcion}
+              </option>
+            ))}
+          </select>
+        </div>
 
 
 
@@ -355,7 +389,7 @@ const AdministrarArticulosPage = () => {
           </div>
         ) : (
           <ProductTable
-            products={products}
+            products={productosFiltrados}
             onEdit={openEditModal}
             onDelete={handleDeleteArticulo}
           />

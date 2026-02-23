@@ -162,7 +162,6 @@ export const getFamiliasConArticulosRequest = async (token) => {
 
 
 export const UpdateDescuentoFamiliaRequest = async (token, bodyDtoFamilia) => {
-    console.log("En UpdateDescuentoFamiliaRequest, bodyDtoFamilia:", bodyDtoFamilia);
     try {
         const response = await axios.post(
             `${API_URL}/familias/update-descuento-familia`,

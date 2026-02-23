@@ -142,6 +142,7 @@ const ProductTC = (props) => {
                       price: props.precio,
                       colors: props.color,
                       fragancia: "",
+                      familiaObj: props.familiaObj,
                     })
                   );
                 }

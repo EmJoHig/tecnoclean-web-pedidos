@@ -44,7 +44,7 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
         </thead>
         <tbody>
           {paginatedProducts.map((product) => (
-            <tr key={product._id}>
+            <tr key={product._id} className=" hover:bg-blue-50 transition-colors duration-150">
               <td className="p-2 border text-center">{product.codigo}</td>
               <td className="p-2 border text-center">{product.descripcion}</td>
               <td className="p-2 border text-center">{product.familiaArticulo ? product.familiaArticulo.descripcion : ""}</td>
