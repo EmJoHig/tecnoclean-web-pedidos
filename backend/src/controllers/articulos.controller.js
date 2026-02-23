@@ -151,7 +151,7 @@ export const GetArticulosCategoria = async (req, res) => {
 // GET FAMILIAS TODAS
 export const GetFamilias = async (req, res) => {
   try {
-    const familias = await Familia.find();
+    const familias = await Familia.find().populate("grupoId");
     res.json(familias);
   }
   catch (error) {
