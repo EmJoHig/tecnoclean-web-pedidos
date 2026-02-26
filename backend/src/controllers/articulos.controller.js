@@ -287,7 +287,8 @@ export const GetArticulosQuery = async (req, res) => {
     const tokens = normalizedQuery
       .split(/\s+/)
       .filter(Boolean)
-      .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")); // escapar regex
+      .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // escapar regex
+      .map((t) => t.replace(/n/g, "(?:n|ñ)"));// 👇 n debe matchear n o ñ
 
     // 🔹 Regex que exige que todas las palabras estén presentes (en cualquier orden)
     const pattern = tokens.map((t) => `(?=.*${t})`).join("") + ".*";
