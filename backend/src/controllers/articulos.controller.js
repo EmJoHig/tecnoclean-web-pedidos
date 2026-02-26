@@ -24,7 +24,17 @@ export const GetArticulos = async (req, res) => {
   let familia = req.query.familia;
   let articulos = null;
 
-  articulos = await Articulo.find().sort({ descripcion: 1 }).populate("familiaArticulo", "descripcion").lean();
+  // articulos = await Articulo.find().sort({ descripcion: 1 }).populate("familiaArticulo", "descripcion").lean();
+
+  articulos = await Articulo
+    .find()
+    .collation({ locale: "es", strength: 1 }) // ignora mayúsculas y acentos
+    .sort({ descripcion: 1 })
+    .populate("familiaArticulo", "descripcion")
+    .lean();
+
+
+
 
   // if (familia != undefined && familia == 'all' ){
   //     articulos = await Articulo.find().lean();
@@ -76,6 +86,7 @@ export const GetArticulosCategoria = async (req, res) => {
 
   // 🔥 QUERY FINAL
   const articulos = await Articulo.find(searchOptions)
+    .sort({ descripcion: 1 })
     .skip(Number(offset))
     .limit(limit)
     .populate(
@@ -260,9 +271,35 @@ export const GetArticulosQuery = async (req, res) => {
       return res.status(400).json({ error: "Query parameter is required" });
     }
 
+    // const articulos = await Articulo.find({
+    //   descripcion: { $regex: query, $options: "i" }, // 'i' para que no sea sensible a mayúsculas/minúsculas
+    // });
+
+    // 🔹 Normalizar texto (sin acentos)
+    const normalizeText = (text) =>
+      text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    const normalizedQuery = normalizeText(query.trim());
+
+    // 🔹 Separar en palabras
+    const tokens = normalizedQuery
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")); // escapar regex
+
+    // 🔹 Regex que exige que todas las palabras estén presentes (en cualquier orden)
+    const pattern = tokens.map((t) => `(?=.*${t})`).join("") + ".*";
+
     const articulos = await Articulo.find({
-      descripcion: { $regex: query, $options: "i" }, // 'i' para que no sea sensible a mayúsculas/minúsculas
-    });
+      descripcion: { $regex: pattern, $options: "i" },
+    })
+      .collation({ locale: "es", strength: 1 }) // ignora mayúsculas y acentos
+      .sort({ descripcion: 1 })
+      .limit(15) // importante para buscador dinámico
+      .lean();
+
 
     return res.json(articulos);
   } catch (error) {
@@ -297,6 +334,19 @@ const generarMensaje = (bodyCarritoUsuario) => {
     if (item.fraccion) {
       mensaje += `  Fracción: ${item.fraccion}\n`;
     }
+
+    if (item.color && item.color != "") {
+      mensaje += `  Color: ${item.color}\n`;
+    }
+
+    // ✅ TOTAL DEL ITEM (cantidad + descuento aplicado)
+    if (item.totalItem != null) {
+      mensaje += `  Total: $ ${item.totalItem.toLocaleString("es-AR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}\n`;
+    }
+
     mensaje += "\n";
   });
 
@@ -971,8 +1021,8 @@ export const ActualizarStockExcelPorCodigo = async (req, res) => {
 
     // Mapear datos desde el Excel
     const productos = data.map(item => ({
-      codigo: item["Código"]?.toString().trim() || "",
-      stock: parseFloat(item["Stock"]) || 0,
+      codigo: item["Codigo"]?.toString().trim() || "",
+      stock: parseFloat(item["Stock_Fisico"]) || 0,
     }));
 
     const resultados = [];
