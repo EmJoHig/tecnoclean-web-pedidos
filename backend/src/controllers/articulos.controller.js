@@ -294,6 +294,7 @@ export const GetArticulosQuery = async (req, res) => {
 
     const articulos = await Articulo.find({
       descripcion: { $regex: pattern, $options: "i" },
+      stock: { $gt: 0 }
     })
       .collation({ locale: "es", strength: 1 }) // ignora mayúsculas y acentos
       .sort({ descripcion: 1 })
