@@ -15,7 +15,7 @@ import { calcularPrecioItem } from "../utils/calcularPrecioDescuento";
 
 const CartPage = () => {
   const dispatch = useDispatch();
-  const { enviarCarritoWsp, loading, CalcularPrecioArticulo } = useArticulos();
+  const { enviarCarritoWsp, loading } = useArticulos();
 
   const { user, getAccessTokenSilently, getIdTokenClaims } = useAuth0();
 
@@ -171,11 +171,34 @@ const CartPage = () => {
 
       const telefono = user['https://tecnoclean/api/phone_number'];
 
+      // ✅ Agrego precios calculados a cada item
+      const articulosConPrecio = products.map((item) => {
+        const p = calcularPrecioItem(item);
+
+        // si querés unitario final (con descuento aplicado)
+        const precioUnitFinal =
+          p.descuento > 0
+            ? p.precioUnit - (p.precioUnit * p.porcentajeDescuento) / 100
+            : p.precioUnit;
+
+        return {
+          ...item,
+
+          // ✅ campos “fijos” para el backend / wsp
+          precioUnitario: Number(precioUnitFinal || 0),
+          subtotalSinDescuento: Number(p.subtotal || 0), // precio sin descuento * cantidad
+          descuentoMonto: Number(p.descuento || 0), // monto descontado total del item (si tu helper lo devuelve así)
+          descuentoPorcentaje: Number(p.porcentajeDescuento || 0),
+          totalItem: Number(p.total || 0), // ✅ total final del item (cantidad incluida, descuento incluido)
+        };
+      });
+
+
       const body = {
         mailUsuario: user.email,
         nombreUsuario: user.name,
         telefono: telefono,
-        articulos: products,
+        articulos: articulosConPrecio,//products,
         precioTotal: totalAmt,
       }
 

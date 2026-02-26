@@ -172,6 +172,13 @@ const ItemCardTC = ({ item, precios }) => {
               Fracción: <span className="font-normal">{item.fraccion} Litros</span>
             </p>
           )}
+
+          {/* Mostrar color si existe */}
+          {item.color !== "" && (
+            <p className="font-semibold text-sm mt-1">
+              Color: <span className="font-normal">{item.color}</span>
+            </p>
+          )}
         </div>
 
 

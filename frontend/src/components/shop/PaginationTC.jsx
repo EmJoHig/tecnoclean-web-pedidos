@@ -36,10 +36,11 @@ function Items({ currentItems, selectedBrands, selectedCategories }) {
             codigo={item.codigo}
             descripcion={item.descripcion}
             precio={item.precio}
-            color="Red"
+            //color="Red"
             fracciones={item.fracciones ? item.fracciones : []}
             tienefragancia={item.tienefragancia ? item.tienefragancia : false}
             familiaObj={item.familiaArticulo ? item.familiaArticulo : null}
+            colores={item.colores ? item.colores : []}
           />
         </div>
       ))}

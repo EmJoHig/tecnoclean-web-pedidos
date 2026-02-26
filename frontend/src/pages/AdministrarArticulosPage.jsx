@@ -50,7 +50,7 @@ const AdministrarArticulosPage = () => {
 
 
   const [fileExcel, setFileExcel] = useState(null);
-
+  const [procesandoExcel, setProcesandoExcel] = useState(false);
 
   useEffect(() => {
     GetFamilias();
@@ -141,71 +141,129 @@ const AdministrarArticulosPage = () => {
   // ----------- FUNCIONES PARA IMPORTAR EXCEL -----------
 
   // Manejar la importación del archivo
-  const handleImportarExcel = async () => {
+  // const handleImportarExcel = async () => {
 
+  //   if (!fileExcel) {
+  //     alert("Por favor, selecciona un archivo.");
+  //     return;
+  //   }
+
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("file", fileExcel); // Agregar el archivo al FormData
+
+  //     // console.log("formData", formData);
+
+  //     // const response = await migracion(formData); 
+
+  //     const response = await updatePreciosImportarExcelPorCodigos(formData); // Llamar a la función con el FormData
+
+  //     if (response) {
+  //       //console.log("response data front", response.data);
+
+  //       const fileInput = document.getElementById("fileInput");
+  //       if (fileInput) fileInput.value = "";
+
+  //       // alert("Productos importados con éxito");
+  //     } else {
+  //       alert("Error al importar productos");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error al importar los productos:", error);
+  //   }
+  // };
+
+  const handleImportarExcel = async () => {
     if (!fileExcel) {
       alert("Por favor, selecciona un archivo.");
       return;
     }
 
     try {
+      setProcesandoExcel(true); // 🔥 ACTIVAR MODAL
+
       const formData = new FormData();
-      formData.append("file", fileExcel); // Agregar el archivo al FormData
+      formData.append("file", fileExcel);
 
-      // console.log("formData", formData);
-
-      // const response = await migracion(formData); 
-
-      const response = await updatePreciosImportarExcelPorCodigos(formData); // Llamar a la función con el FormData
+      const response = await updatePreciosImportarExcelPorCodigos(formData);
 
       if (response) {
-        //console.log("response data front", response.data);
-
         const fileInput = document.getElementById("fileInput");
         if (fileInput) fileInput.value = "";
-
-        // alert("Productos importados con éxito");
       } else {
         alert("Error al importar productos");
       }
+
     } catch (error) {
       console.error("Error al importar los productos:", error);
+    } finally {
+      setProcesandoExcel(false); // 🔥 DESACTIVAR MODAL SIEMPRE
     }
   };
 
 
-  // update stock
+
+  // // update stock
+
+  // const handleImportarExcelStock = async () => {
+
+  //   if (!fileExcel) {
+  //     alert("Por favor, selecciona un archivo.");
+  //     return;
+  //   }
+
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("file", fileExcel); // Agregar el archivo al FormData
+
+  //     // console.log("formData", formData);
+
+  //     // const response = await migracion(formData); 
+
+  //     const response = await updateStockImportarExcelPorCodigos(formData); // Llamar a la función con el FormData
+
+  //     if (response) {
+  //       //console.log("response data front", response.data);
+
+  //       const fileInput = document.getElementById("fileInput");
+  //       if (fileInput) fileInput.value = "";
+
+  //       alert("Productos importados con éxito");
+
+  //     } else {
+  //       alert("Error al importar productos");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error al importar los productos:", error);
+  //   }
+  // };
 
   const handleImportarExcelStock = async () => {
-
     if (!fileExcel) {
       alert("Por favor, selecciona un archivo.");
       return;
     }
 
     try {
+      setProcesandoExcel(true); // 🔥 ACTIVAR MODAL
+
       const formData = new FormData();
-      formData.append("file", fileExcel); // Agregar el archivo al FormData
+      formData.append("file", fileExcel);
 
-      // console.log("formData", formData);
-
-      // const response = await migracion(formData); 
-
-      const response = await updateStockImportarExcelPorCodigos(formData); // Llamar a la función con el FormData
+      const response = await updateStockImportarExcelPorCodigos(formData);
 
       if (response) {
-        //console.log("response data front", response.data);
-
         const fileInput = document.getElementById("fileInput");
         if (fileInput) fileInput.value = "";
-
         alert("Productos importados con éxito");
-
       } else {
         alert("Error al importar productos");
       }
+
     } catch (error) {
       console.error("Error al importar los productos:", error);
+    } finally {
+      setProcesandoExcel(false); // 🔥 DESACTIVAR MODAL SIEMPRE
     }
   };
 
@@ -411,6 +469,20 @@ const AdministrarArticulosPage = () => {
         onConfirm={confirmDeleteArticulo}
         producto={productoAEliminar}
       />
+
+      {procesandoExcel && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-xl shadow-xl flex flex-col items-center space-y-4">
+            <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-lg font-semibold text-gray-700">
+              Procesando archivo Excel...
+            </p>
+            <p className="text-sm text-gray-500">
+              Esto puede tardar unos segundos
+            </p>
+          </div>
+        </div>
+      )}
 
     </>
 

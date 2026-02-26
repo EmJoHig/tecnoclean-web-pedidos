@@ -200,17 +200,36 @@ const HeaderBottom = ({ mode = "default" }) => {
                           {openGroups[grupo] && (
                             <ul className="ml-4 mt-2">
                               {familiasAgrupadas[grupo].map((item) => (
-                                <li key={item.codigo} className="flex items-center gap-3 py-2 text-base">
+                                // version antes
+                                // <li key={item.codigo} className="flex items-center gap-3 py-2 text-base">
+                                //   <input
+                                //     type="checkbox"
+                                //     id={`cat-${item._id}`}
+                                //     className="cursor-pointer w-5 h-5"
+                                //     checked={checkedCategorys.some((b) => b._id === item._id)}
+                                //     onChange={() => handleToggleCategory(item)}
+                                //   />
+                                //   <label htmlFor={`cat-${item._id}`} className="cursor-pointer flex-1 truncate">
+                                //     {item.descripcion}
+                                //   </label>
+                                // </li>
+
+                                // version actual 
+                                <li
+                                  key={item.codigo}
+                                  onClick={() => handleToggleCategory(item)}
+                                  className="flex items-center gap-3 py-3 text-base cursor-pointer active:bg-red-600 rounded-md"
+                                >
                                   <input
                                     type="checkbox"
-                                    id={`cat-${item._id}`}
-                                    className="cursor-pointer w-5 h-5"
                                     checked={checkedCategorys.some((b) => b._id === item._id)}
-                                    onChange={() => handleToggleCategory(item)}
+                                    onChange={() => { }}
+                                    className="w-5 h-5 pointer-events-none"
                                   />
-                                  <label htmlFor={`cat-${item._id}`} className="cursor-pointer flex-1 truncate">
+
+                                  <span className="flex-1 truncate select-none">
                                     {item.descripcion}
-                                  </label>
+                                  </span>
                                 </li>
                               ))}
                             </ul>

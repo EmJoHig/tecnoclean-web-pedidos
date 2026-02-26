@@ -199,24 +199,24 @@ export const getFraganciasRequest = async (token) => {
 
 
 // calcular precios fracciones
-export const calcularPrecioArticuloRequest = async (token, data) => {
-    try {
-        const response = await axios.post(
-            `${API_URL}/articulos/calcular-precio-articulo`,
-            data,
-            {
-                headers: {// Content-Typ e=> multipart/form-data NO ES NECESARIO PORQUE ENVIO articulo como FormData, q lo hace automatico
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
+// export const calcularPrecioArticuloRequest = async (token, data) => {
+//     try {
+//         const response = await axios.post(
+//             `${API_URL}/articulos/calcular-precio-articulo`,
+//             data,
+//             {
+//                 headers: {// Content-Typ e=> multipart/form-data NO ES NECESARIO PORQUE ENVIO articulo como FormData, q lo hace automatico
+//                     Authorization: `Bearer ${token}`,
+//                 },
+//             }
+//         );
 
-        return response;
-    } catch (error) {
-        console.error("Error fetching calcularPrecioArticuloRequest: ", error);
-        throw error;
-    }
-};
+//         return response;
+//     } catch (error) {
+//         console.error("Error fetching calcularPrecioArticuloRequest: ", error);
+//         throw error;
+//     }
+// };
 
 
 // CRUD

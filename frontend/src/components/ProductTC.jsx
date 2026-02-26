@@ -122,8 +122,12 @@ const ProductTC = (props) => {
             <li
               onClick={() => {
 
-                if (props.fracciones && props.fracciones.length > 0) {
-                  // Redirigir al detalle si el código es uno de los especiales
+                // if (props.fracciones && props.fracciones.length > 0) {
+                if (
+                  props?.fracciones?.length > 0 ||
+                  props?.colores?.length > 0
+                ) {
+                  // Redirigir al detalle del producto para seleccionar fracción o color
                   navigate(`/articulo/${encodeURIComponent(props.descripcion)}`, {
                     state: {
                       item: productItem,
@@ -140,9 +144,10 @@ const ProductTC = (props) => {
                       imagen: props.imagen,
                       badge: props.badge,
                       price: props.precio,
-                      colors: props.color,
+                      //colors: props.color,
                       fragancia: "",
                       familiaObj: props.familiaObj,
+                      color: ""
                     })
                   );
                 }

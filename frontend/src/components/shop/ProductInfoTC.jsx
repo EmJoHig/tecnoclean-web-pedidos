@@ -12,6 +12,8 @@ const ProductInfoTC = ({ productInfo }) => {
 
   const [selectedFragancia, setSelectedFragancia] = useState("");
   const [selectedFraccion, setSelectedFraccion] = useState("1");
+  const [selectedColor, setSelectedColor] = useState("");
+
 
   const highlightStyle = {
     color: "#d0121a", // Change this to the desired color
@@ -31,6 +33,12 @@ const ProductInfoTC = ({ productInfo }) => {
       setSelectedFragancia(fragancias[0].nombre); // Selecciona la primera fragancia por defecto
     }
   }, [fragancias, selectedFragancia]);
+
+  useEffect(() => {
+    if (productInfo?.colores?.length > 0 && !selectedColor) {
+      setSelectedColor(productInfo.colores[0]);
+    }
+  }, [productInfo?.colores, selectedColor]);
 
 
   const dispatch = useDispatch();
@@ -137,6 +145,36 @@ const ProductInfoTC = ({ productInfo }) => {
         </div>
       )}
 
+
+      {/* Selección de Color */}
+      {productInfo?.colores?.length > 0 && (
+        <div>
+          <label
+            htmlFor="color"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Selecciona un color
+          </label>
+          <select
+            id="color"
+            name="color"
+            value={selectedColor}
+            onChange={(e) => setSelectedColor(e.target.value)}
+            className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            style={{
+              width: "20%",
+              maxHeight: "15rem",
+              overflowY: "auto",
+            }}
+          >
+            {productInfo.colores.map((color) => (
+              <option key={color} value={color}>
+                {color}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* <p className="text-base text-gray-600">{renderDescripcion()}</p> */}
 
@@ -251,6 +289,11 @@ const ProductInfoTC = ({ productInfo }) => {
             customId = `${productInfo._id}-${selectedFraccion}`;
           }
 
+          // Si tiene colores
+          if (productInfo?.colores?.length > 0 && selectedColor) {
+            customId = `${customId}-${selectedColor}`;
+          }
+
           dispatch(
             addToCart({
               _id: customId,
@@ -260,12 +303,13 @@ const ProductInfoTC = ({ productInfo }) => {
               imagen: productInfo.imagen,
               badge: null,
               price: productInfo.precio,
-              colors: productInfo.color,
+              // colors: productInfo.color,
               tienefragancia: productInfo.tienefragancia,
               fragancia: productInfo.tienefragancia ? selectedFragancia : "",
               fraccion: productInfo.fracciones?.length === 0 ? "1" : selectedFraccion,
               tieneFraccion: productInfo.fracciones?.length > 0,
               familiaObj: productInfo.familiaObj, // Agregamos la familia completa para cálculos futuros
+              color: productInfo?.colores?.length > 0 ? selectedColor : "",
             })
           );
         }}

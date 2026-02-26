@@ -12,7 +12,7 @@ import {
   importarArticulosExcelRequest,
   updatePreciosImportarExcelRequest,
   updatePreciosImportarExcelPorCodigosRequest,
-  calcularPrecioArticuloRequest,
+  // calcularPrecioArticuloRequest,
   migracionRequest,
   updateStockImportarExcelPorCodigosRequest,
   //crud
@@ -317,29 +317,29 @@ export function ArticuloProvider({ children }) {
 
 
   // calcular precio articulo segun fracciones
-  const CalcularPrecioArticulo = async (bodyCarritoUsuario) => {
-    try {
+  // const CalcularPrecioArticulo = async (bodyCarritoUsuario) => {
+  //   try {
 
-      const token = await getAccessTokenSilently({
-        audience: 'https://tecnoclean/api',
-      });
+  //     const token = await getAccessTokenSilently({
+  //       audience: 'https://tecnoclean/api',
+  //     });
 
 
-      const res = await calcularPrecioArticuloRequest(token, bodyCarritoUsuario);
+  //     const res = await calcularPrecioArticuloRequest(token, bodyCarritoUsuario);
 
-      if (res && res.data) {
-        return res.data;
-      } else {
-        console.log("Error en CalcularPrecioArticulo");
-        return res.data;
-      }
-    } catch (error) {
-      console.log(error);
-      throw new Error("Error en CalcularPrecioArticulo");
-    } finally {
+  //     if (res && res.data) {
+  //       return res.data;
+  //     } else {
+  //       console.log("Error en CalcularPrecioArticulo");
+  //       return res.data;
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw new Error("Error en CalcularPrecioArticulo");
+  //   } finally {
 
-    }
-  };
+  //   }
+  // };
 
 
 
@@ -543,7 +543,7 @@ export function ArticuloProvider({ children }) {
         importarArticulosExcel,
         updatePreciosImportarExcel,// version vieja
         updatePreciosImportarExcelPorCodigos,// version nueva 
-        CalcularPrecioArticulo,
+        // CalcularPrecioArticulo,
         migracion,
         updateStockImportarExcelPorCodigos
       }}

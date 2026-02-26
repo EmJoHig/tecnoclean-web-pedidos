@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence  } from "framer-motion";
 import { ImPlus, ImMinus } from "react-icons/im";
 import { IoMdClose } from "react-icons/io";
 import NavTitleTC from "./NavTitleTC";
@@ -68,18 +68,20 @@ const CategoryTC = () => {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-white rounded-2xl shadow-md p-5 border border-gray-100">
       {/* <NavTitleTC title="Categorias" icons={false} /> */}
 
       {/* nuevito */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-[#262626]">Categorías</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-gray-800 tracking-tight">
+          Categorías
+        </h2>
         {checkedCategorys.length > 0 && (
           <button
             onClick={() => {
               checkedCategorys.forEach((cat) => dispatch(toggleCategory(cat)));
             }}
-            className="text-sm text-[#e00725] hover:text-[#c00620] font-medium underline underline-offset-2"
+            className="text-sm text-[#e00725] font-medium hover:opacity-80 transition"
           >
             Limpiar todo
           </button>
@@ -93,14 +95,14 @@ const CategoryTC = () => {
           {checkedCategorys.map((cat) => (
             <div
               key={cat._id}
-              className="flex items-center bg-[#e00725] text-white rounded-full px-3 py-1 text-sm"
+              className="flex items-center bg-[#e00725]/10 text-[#e00725] border border-[#e00725]/20 rounded-full px-3 py-1 text-sm font-medium"
             >
               <span className="mr-2">{cat.descripcion}</span>
               <button
                 onClick={() => handleToggleCategory(cat)}
                 className="focus:outline-none"
               >
-                <IoMdClose className="text-white text-lg" />
+                <IoMdClose className="text-[#e00725] text-lg hover:scale-110 transition" />
               </button>
             </div>
           ))}
@@ -123,38 +125,67 @@ const CategoryTC = () => {
         >
           <ul className="flex flex-col gap-2 text-sm lg:text-base text-[#767676]">
             {Object.keys(familiasAgrupadas).map((grupo) => (
-              <li key={grupo} className="border-b border-gray-300">
+              <li key={grupo} className="rounded-xl overflow-hidden">
                 <div
-                  className="flex justify-between items-center cursor-pointer p-2 font-semibold hover:text-[#e00725] hover:bg-gray-100 transition"
-                  onClick={() => handleGrupoCollapse(grupo)}
+                  className={`flex justify-between items-center cursor-pointer px-4 py-3 font-semibold rounded-xl transition
+                    ${openGrupo === grupo
+                      ? "bg-[#e00725]/10 text-[#e00725]"
+                      : "hover:bg-gray-100 text-gray-800"
+                    }`} onClick={() => handleGrupoCollapse(grupo)}
                 >
                   <span>{grupo}</span>
                   <span>{openGrupo === grupo ? <ImMinus /> : <ImPlus />}</span>
                 </div>
 
-                {openGrupo === grupo && (
-                  <ul className="pl-4">
-                    {familiasAgrupadas[grupo].map((item) => (
-                      <li key={item.codigo} className="border-b border-gray-200">
-                        <div className="flex items-center cursor-pointer p-2 hover:text-[#e00725] hover:bg-gray-50 transition">
-                          <label className="flex items-center gap-2 w-full">
-                            <input
-                              type="checkbox"
-                              className="cursor-pointer transform scale-150"
-                              id={item._id}
-                              checked={checkedCategorys.some(
-                                (b) => b._id === item._id
-                              )}
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={() => handleToggleCategory(item)}
-                            />
-                            <span className="truncate">{item.descripcion}</span>
-                          </label>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <AnimatePresence>
+                  {openGrupo === grupo && (
+                    <motion.ul
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden mt-2 flex flex-col gap-1"
+                    >
+                      {familiasAgrupadas[grupo].map((item) => {
+                        const isChecked = checkedCategorys.some(
+                          (b) => b._id === item._id
+                        );
+
+                        return (
+                          <li key={item.codigo}>
+                            <label className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition hover:bg-gray-50 group">
+                              <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={isChecked}
+                                onChange={() =>
+                                  handleToggleCategory(item)
+                                }
+                              />
+
+                              <span className="truncate text-gray-700 group-hover:text-[#e00725] transition">
+                                {item.descripcion}
+                              </span>
+
+                              <div
+                                className={`w-5 h-5 rounded-md border flex items-center justify-center transition
+                                  ${isChecked
+                                    ? "bg-[#e00725] border-[#e00725]"
+                                    : "border-gray-300"
+                                  }
+                                `}
+                              >
+                                {isChecked && (
+                                  <div className="w-2 h-2 bg-white rounded-sm" />
+                                )}
+                              </div>
+                            </label>
+                          </li>
+                        );
+                      })}
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
               </li>
             ))}
           </ul>
