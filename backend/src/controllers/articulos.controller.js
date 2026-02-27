@@ -299,6 +299,7 @@ export const GetArticulosQuery = async (req, res) => {
     })
       .collation({ locale: "es", strength: 1 }) // ignora mayúsculas y acentos
       .sort({ descripcion: 1 })
+      .populate("familiaArticulo", "descripcion codigo descuento")
       .limit(15) // importante para buscador dinámico
       .lean();
 
