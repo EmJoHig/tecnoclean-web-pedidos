@@ -8,15 +8,14 @@ export function calcularPrecioItem(item) {
   const precioUnit = precioBase * fraccion;
   const subtotal = precioUnit * cantidad;
 
-  const descuentoActivo = item.familiaObj?.descuento?.activo;
-  const porcentaje = item.familiaObj?.descuento?.porcentaje || 0;
+  const descuentoActivo = item.familiaArticulo?.descuento?.activo;
+  const porcentaje = item.familiaArticulo?.descuento?.porcentaje || 0;
 
   const descuento = descuentoActivo
     ? subtotal * (porcentaje / 100)
     : 0;
 
   const totalConDescuento = subtotal - descuento;
-  //console.log(`Calculando precio para ${JSON.stringify(item)}`);
 
   return {
     precioUnit,

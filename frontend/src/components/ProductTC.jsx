@@ -38,10 +38,10 @@ const ProductTC = (props) => {
   };
 
   const tieneDescuento =
-    props.familiaObj?.descuento?.activo;
+    props.familiaArticulo?.descuento?.activo;
 
   const porcentajeDescuento =
-    props.familiaObj?.descuento?.porcentaje || 0;
+    props.familiaArticulo?.descuento?.porcentaje || 0;
 
   const precioOriginal = props.precio || 0;
 
@@ -146,7 +146,7 @@ const ProductTC = (props) => {
                       price: props.precio,
                       //colors: props.color,
                       fragancia: "",
-                      familiaObj: props.familiaObj,
+                      familiaArticulo: props.familiaArticulo,
                       color: ""
                     })
                   );

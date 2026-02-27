@@ -190,9 +190,13 @@ const AdministrarArticulosPage = () => {
       if (response) {
         const fileInput = document.getElementById("fileInput");
         if (fileInput) fileInput.value = "";
+        alert("PRECIOS ACTUALIZADO con éxito");
       } else {
         alert("Error al importar productos");
       }
+
+      const responseArticulos = await getArticulos();
+      setProducts(responseArticulos);
 
     } catch (error) {
       console.error("Error al importar los productos:", error);
@@ -255,10 +259,13 @@ const AdministrarArticulosPage = () => {
       if (response) {
         const fileInput = document.getElementById("fileInput");
         if (fileInput) fileInput.value = "";
-        alert("Productos importados con éxito");
+        alert("STOCK ACTUALIZADO con éxito");
       } else {
         alert("Error al importar productos");
       }
+
+      const responseArticulos = await getArticulos();
+      setProducts(responseArticulos);
 
     } catch (error) {
       console.error("Error al importar los productos:", error);

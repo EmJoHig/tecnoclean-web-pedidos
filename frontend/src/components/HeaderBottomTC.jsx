@@ -11,6 +11,7 @@ import { toggleCategory } from "../redux/orebiSlice";
 import useIsMobile from "../hooks/useIsMobile";
 import { useArticulos } from "../context/articulosContext";
 import { API_URL } from "../config";
+import { calcularPrecioItem } from "../utils/calcularPrecioDescuento";
 
 
 
@@ -25,7 +26,7 @@ const agruparFamiliasPorGrupo = (familias) => {
 };
 
 const HeaderBottom = ({ mode = "default" }) => {
-  const { articulosQuery, GetArticulosQuery, familias, GetFamiliasConArticulos, updateOffset, GetArticulosPorCategoria } = useArticulos();
+  const { articulosQuery, GetArticulosQuery, familiasConArticulos, GetFamiliasConArticulos, updateOffset, GetArticulosPorCategoria } = useArticulos();
   const products = useSelector((state) => state.orebiReducer.products);
   const isMobile = useIsMobile();
 
@@ -50,9 +51,9 @@ const HeaderBottom = ({ mode = "default" }) => {
 
   // Agrupar familias por grupo dentro de useEffect y manejar loading
   useEffect(() => {
-    if (!familias) return;
+    if (!familiasConArticulos) return;
     const resultado = {};
-    familias.forEach((familia) => {
+    familiasConArticulos.forEach((familia) => {
       const grupoDescripcion = familia.grupoId?.descripcion;
       if (!grupoDescripcion || grupoDescripcion.trim() === "") return;
 
@@ -62,7 +63,7 @@ const HeaderBottom = ({ mode = "default" }) => {
       resultado[grupoDescripcion].push(familia);
     });
     setFamiliasAgrupadas(resultado);
-  }, [familias]);
+  }, [familiasConArticulos]);
 
 
 
@@ -280,7 +281,7 @@ const HeaderBottom = ({ mode = "default" }) => {
                           ? `${item.descripcion.slice(0, 100)}...`
                           : item.descripcion}
                       </p>
-                      <p className="text-lg">
+                      {/* <p className="text-lg">
                         Precio:{" "}
                         <span className="text-primeColor font-semibold">
                           ${" "}
@@ -289,7 +290,54 @@ const HeaderBottom = ({ mode = "default" }) => {
                             maximumFractionDigits: 2,
                           })}
                         </span>
-                      </p>
+                      </p> */}
+
+                      {(() => {
+                        // Adaptamos el item de búsqueda al formato del helper del carrito
+                        const precios = calcularPrecioItem({
+                          ...item,
+                          // tu API usa "precio", el carrito usa "price"
+                          price: item.price ?? item.precio,
+                          priceBase: item.priceBase ?? item.precioBase ?? item.price ?? item.precio,
+                          fraccion: item.fraccion ?? 1,
+                          quantity: 1, // en búsqueda mostramos precio unitario (1 unidad)
+                        });
+
+                        const precioFinalUnit = precios.total; // total para quantity=1 => unitario final (con descuento si aplica)
+                        const precioOriginalUnit = precios.subtotal; // subtotal para quantity=1 => unitario original
+                        const tieneDescuento = precios.descuento > 0;
+
+                        return (
+                          <p className="text-lg flex items-center gap-2 flex-wrap">
+                            <span>Precio:</span>
+
+                            <span className="text-primeColor font-semibold">
+                              ${" "}
+                              {precioFinalUnit.toLocaleString("es-ES", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </span>
+
+                            {tieneDescuento && (
+                              <>
+                                <span className="text-gray-500 line-through text-sm">
+                                  ${" "}
+                                  {precioOriginalUnit.toLocaleString("es-ES", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  })}
+                                </span>
+
+                                <span className="text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">
+                                  -{precios.porcentajeDescuento}%
+                                </span>
+                              </>
+                            )}
+                          </p>
+                        );
+                      })()}
+
                     </div>
                   </div>
                 ))}

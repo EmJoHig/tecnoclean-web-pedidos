@@ -44,10 +44,10 @@ const ProductInfoTC = ({ productInfo }) => {
   const dispatch = useDispatch();
 
   const tieneDescuento =
-    productInfo.familiaObj?.descuento?.activo;
+    productInfo.familiaArticulo?.descuento?.activo;
 
   const porcentajeDescuento =
-    productInfo.familiaObj?.descuento?.porcentaje || 0;
+    productInfo.familiaArticulo?.descuento?.porcentaje || 0;
 
   const precioOriginal = productInfo.precio || 0;
 
@@ -99,12 +99,13 @@ const ProductInfoTC = ({ productInfo }) => {
             name="fragancia"
             value={selectedFragancia}
             onChange={(e) => setSelectedFragancia(e.target.value)}
-            className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            style={{
-              width: "20%",
-              maxHeight: "15rem",
-              overflowY: "auto",
-            }}
+            className="mt-1 w-full sm:w-1/2 lg:w-2/5 py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#e00725] focus:border-[#e00725] sm:text-sm"
+            // className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            // style={{
+            //   width: "20%",
+            //   maxHeight: "15rem",
+            //   overflowY: "auto",
+            // }}
           >
             {fragancias && fragancias.map((fragancia) => (
               <option key={fragancia.nombre} value={fragancia.nombre}>
@@ -129,12 +130,14 @@ const ProductInfoTC = ({ productInfo }) => {
             name="fraccion"
             value={selectedFraccion}
             onChange={(e) => setSelectedFraccion(e.target.value)}
-            className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            style={{
-              width: "20%",
-              maxHeight: "15rem",
-              overflowY: "auto",
-            }}
+            className="mt-1 w-full sm:w-1/2 lg:w-2/5 py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#e00725] focus:border-[#e00725] sm:text-sm"
+
+            // className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            // style={{
+            //   width: "20%",
+            //   maxHeight: "15rem",
+            //   overflowY: "auto",
+            // }}
           >
             {productInfo.fracciones.map((fr) => (
               <option key={fr} value={fr}>
@@ -160,12 +163,14 @@ const ProductInfoTC = ({ productInfo }) => {
             name="color"
             value={selectedColor}
             onChange={(e) => setSelectedColor(e.target.value)}
-            className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            style={{
-              width: "20%",
-              maxHeight: "15rem",
-              overflowY: "auto",
-            }}
+            className="mt-1 w-full sm:w-1/2 lg:w-2/5 py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#e00725] focus:border-[#e00725] sm:text-sm"
+
+            // className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            // style={{
+            //   width: "20%",
+            //   maxHeight: "15rem",
+            //   overflowY: "auto",
+            // }}
           >
             {productInfo.colores.map((color) => (
               <option key={color} value={color}>
@@ -308,7 +313,7 @@ const ProductInfoTC = ({ productInfo }) => {
               fragancia: productInfo.tienefragancia ? selectedFragancia : "",
               fraccion: productInfo.fracciones?.length === 0 ? "1" : selectedFraccion,
               tieneFraccion: productInfo.fracciones?.length > 0,
-              familiaObj: productInfo.familiaObj, // Agregamos la familia completa para cálculos futuros
+              familiaArticulo: productInfo.familiaArticulo, // Agregamos la familia completa para cálculos futuros
               color: productInfo?.colores?.length > 0 ? selectedColor : "",
             })
           );
