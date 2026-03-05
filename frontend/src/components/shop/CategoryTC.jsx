@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence  } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ImPlus, ImMinus } from "react-icons/im";
 import { IoMdClose } from "react-icons/io";
 import NavTitleTC from "./NavTitleTC";
@@ -124,7 +124,7 @@ const CategoryTC = () => {
           transition={{ duration: 0.5 }}
         >
           <ul className="flex flex-col gap-2 text-sm lg:text-base text-[#767676]">
-            {Object.keys(familiasAgrupadas).map((grupo) => (
+            {Object.keys(familiasAgrupadas).sort((a, b) => a.localeCompare(b)).map((grupo) => (
               <li key={grupo} className="rounded-xl overflow-hidden">
                 <div
                   className={`flex justify-between items-center cursor-pointer px-4 py-3 font-semibold rounded-xl transition

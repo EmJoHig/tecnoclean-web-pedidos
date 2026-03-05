@@ -182,7 +182,7 @@ const HeaderBottom = ({ mode = "default" }) => {
                       transition={{ duration: 0.5 }}
                       className="absolute top-14 z-50 bg-[#e00725] w-[90%] text-[#fff] p-4 rounded-lg"
                     >
-                      {Object.keys(familiasAgrupadas).map((grupo) => (
+                      {Object.keys(familiasAgrupadas).sort((a, b) => a.localeCompare(b)).map((grupo) => (
                         <div key={grupo} className="mb-3">
                           <div
                             onClick={(e) => {

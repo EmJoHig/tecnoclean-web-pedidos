@@ -21,7 +21,9 @@ import {
   UpdateArticulo,
   DeleteArticulo,
   Migracion,
-  ActualizarStockExcelPorCodigo
+  ActualizarStockExcelPorCodigo,
+  GetGruposFamilias,
+  AsignarGrupoAFamilias
 } from "../controllers/articulos.controller.js";
 import multer from 'multer';
 
@@ -152,6 +154,11 @@ router.post("/articulos/migracion", jwtCheck, uploadExcel.single("file"), Migrac
 
 // update de stock por excel segun codigo del sistema y mi web
 router.post("/articulos/update-stock-excel-por-codigo", jwtCheck, uploadExcel.single("file"), ActualizarStockExcelPorCodigo);
+
+
+router.get("/articulos/getGruposFamilias", jwtCheck, GetGruposFamilias);
+
+router.post("/familias/asignar-grupo", jwtCheck, AsignarGrupoAFamilias);
 
 export default router;
 

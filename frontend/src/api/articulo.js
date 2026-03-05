@@ -302,8 +302,8 @@ export const deleteArticuloRequest = async (token, id) => {
     }
 };
 
- 
- 
+
+
 // importar update precios POR CODIGO ULTIMA VERSION
 export const updatePreciosImportarExcelPorCodigosRequest = async (token, formDataExcel) => {
     try {
@@ -369,6 +369,43 @@ export const updateStockImportarExcelPorCodigosRequest = async (token, formDataE
         return response;
     } catch (error) {
         console.error("Error fetching updateStockImportarExcelPorCodigosRequest: ", error);
+        throw error;
+    }
+};
+
+
+// GRUPOS FAMILIAS
+export const getGruposFamiliasRequest = async (token) => {
+    try {
+        const response = await axios.get(`${API_URL}/articulos/getGruposFamilias`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching getGruposFamiliasRequest:", error);
+        throw error;
+    }
+};
+
+export const asignarGrupoAFamiliasRequest = async (token, grupoId, familiasIds) => {
+    try {
+        const response = await axios.post(
+            `${API_URL}/familias/asignar-grupo`,
+            { grupoId, familiasIds },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching asignarGrupoAFamiliasRequest: ", error);
         throw error;
     }
 };

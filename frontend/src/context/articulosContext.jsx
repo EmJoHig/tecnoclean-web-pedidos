@@ -20,6 +20,8 @@ import {
   getArticuloPorIdRequest,
   updateArticuloRequest,
   deleteArticuloRequest,
+  getGruposFamiliasRequest,
+  asignarGrupoAFamiliasRequest,
 } from "../api/articulo";
 
 const ArticuloContext = createContext();
@@ -230,8 +232,8 @@ export function ArticuloProvider({ children }) {
       return "Error al editar el descuento de familia";
     }
   };
-  
-  
+
+
   // const  = async (id, descuento) => {
   //   return fetch(`${API_URL}/familias/${id}/descuento`, {
   //     method: "PUT",
@@ -516,6 +518,35 @@ export function ArticuloProvider({ children }) {
   };
 
 
+  const GetGruposFamilias = async () => {
+    try {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await getGruposFamiliasRequest(token);
+      return res.data;
+    } catch (error) {
+      console.error('Error fetching grupos familias:', error);
+      return [];
+    }
+  };
+
+  const AsignarGrupoAFamilias = async (grupoId, familiasIds) => {
+    try {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await asignarGrupoAFamiliasRequest(token, grupoId, familiasIds);
+      return res.data;
+    } catch (error) {
+      console.error('Error in AsignarGrupoAFamilias:', error);
+      throw error;
+    }
+  };
+
+
   return (
     <ArticuloContext.Provider
       value={{
@@ -545,7 +576,9 @@ export function ArticuloProvider({ children }) {
         updatePreciosImportarExcelPorCodigos,// version nueva 
         // CalcularPrecioArticulo,
         migracion,
-        updateStockImportarExcelPorCodigos
+        updateStockImportarExcelPorCodigos,
+        GetGruposFamilias,
+        AsignarGrupoAFamilias
       }}
     >
       {children}

@@ -1,30 +1,32 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import HeaderBottomTC from "../components/HeaderBottomTC";
-import BreadcrumbsTC from "../components/shop/BreadcrumbsTC";
-import PaginationTC from "../components/shop/PaginationTC";
-import ProductBannerTC from "../components/shop/ProductBannerTC";
-import ShopSideNavTC from "../components/shop/ShopSideNavTC";
-import { filterArticulos } from "../redux/orebiSlice";
 import { useArticulos } from "../context/articulosContext";
 import { useNavigate } from "react-router-dom";
 import ProductTable from "./ProductTable";
 import ProductModal from "./ProductModal";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import {
+  FaPlus,
+  FaPercent,
+  FaLayerGroup,
+  FaFileExcel,
+  FaUpload,
+  FaFilter,
+  FaCheck,
+  FaTimes
+} from "react-icons/fa";
 
 const AdministrarArticulosPage = () => {
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { familias,
+  const {
+    familias,
     loading,
-    GetArticulosPorCategoria,
     getArticulos,
-    updatePreciosImportarExcel,
     updatePreciosImportarExcelPorCodigos,
     updateStockImportarExcelPorCodigos,
-    migracion,
     GetFamilias,
     createArticulo,
     updateArticulo,
@@ -32,425 +34,307 @@ const AdministrarArticulosPage = () => {
   } = useArticulos();
 
   const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);  // Producto seleccionado para edición
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [productoAEliminar, setProductoAEliminar] = useState(null);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const filterRef = useRef(null);
 
-  const [familiaSeleccionada, setFamiliaSeleccionada] = useState("");
+  // New state for multi-select families
+  const [familiasSeleccionadas, setFamiliasSeleccionadas] = useState([]);
 
-  const productosFiltrados = familiaSeleccionada
-    ? products.filter(p => p.familiaArticulo?._id === familiaSeleccionada)
+  const productosFiltrados = familiasSeleccionadas.length > 0
+    ? products.filter(p => familiasSeleccionadas.includes(p.familiaArticulo?._id))
     : products;
 
   const familiasOrdenadas = [...(familias || [])].sort((a, b) =>
     a.descripcion.localeCompare(b.descripcion, "es", { sensitivity: "base" })
   );
 
-
   const [fileExcel, setFileExcel] = useState(null);
   const [procesandoExcel, setProcesandoExcel] = useState(false);
 
   useEffect(() => {
     GetFamilias();
+    fetchData();
+
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setShowFilterDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-
-  useEffect(() => {
-    // GetFamilias();
-    async function fetchData() {
-      try {
-        const articulosData = await getArticulos();  // Obtener artículos
-        setProducts(articulosData);  // Establecer productos
-      } catch (error) {
-        console.error("Error al cargar los productos:", error);
-      }
+  async function fetchData() {
+    try {
+      const articulosData = await getArticulos();
+      setProducts(articulosData);
+    } catch (error) {
+      console.error("Error al cargar los productos:", error);
     }
+  }
 
-    fetchData();  // Llamada a la función fetchData
-  }, []); // [getArticulos]
-
-
-
-  // Abrir el modal para crear un producto
   const openCreateModal = () => {
-    setSelectedProduct(null);  // No hay producto seleccionado, es para crear
+    setSelectedProduct(null);
     setModalOpen(true);
   };
 
-  // Abrir el modal para editar un producto
   const openEditModal = (product) => {
-    setSelectedProduct(product);  // Establecer el producto seleccionado para editar
+    setSelectedProduct(product);
     setModalOpen(true);
   };
 
-  // Función para manejar el cierre del modal
   const closeModal = () => {
     setModalOpen(false);
   };
 
-  // Función para manejar la actualización de productos después de crear o editar
   const handleProductSave = async (formArticuloJson) => {
     try {
-      const { codigo, descripcion, precio, stock } = formArticuloJson;
-
       const formJson = Object.fromEntries(formArticuloJson.entries());
-
-      if (!formJson.id) {  // NUEVO  producto
-
-        // console.log('formArticuloJson NEW', formArticuloJson);
-        const resp = await createArticulo(formArticuloJson);
-
-
-        if (resp === "") {
-          alert('exito al crear el articulo:', resp);
-          // openSnackBar('El Articulo se ha creado con éxito.', 'success');
-        } else {
-          console.log('Error al crear el articulo:', resp);
-          // openSnackBar('No se pudo crear la actividad. Inténtalo de nuevo.', 'error');
-        }
-      } else { // EDITAR producto
-
-        // console.log('formArticuloJson EDIT', formArticuloJson);
-        const resp = await updateArticulo(formJson.id, formArticuloJson);
-
-
-        if (resp === "") {
-          alert('exito al editar el articulo:', resp);
-          // openSnackBar('El Articulo se ha creado con éxito.', 'success');
-        } else {
-          console.log('Error al crear el articulo:', resp);
-          // openSnackBar('No se pudo crear la actividad. Inténtalo de nuevo.', 'error');
-        }
+      if (!formJson.id) {
+        await createArticulo(formArticuloJson);
+      } else {
+        await updateArticulo(formJson.id, formArticuloJson);
       }
-
       const resp = await getArticulos();
       setProducts(resp);
-
-    } catch (error) {
-      console.error('Error al crear/editar el articulo:', error);
       closeModal();
-      // openSnackBar('Error al crear la actividad. Verifica los datos.', 'error');
+    } catch (error) {
+      console.error('Error al guardar el articulo:', error);
     }
   };
-
-
-
-
-  // ----------- FUNCIONES PARA IMPORTAR EXCEL -----------
-
-  // Manejar la importación del archivo
-  // const handleImportarExcel = async () => {
-
-  //   if (!fileExcel) {
-  //     alert("Por favor, selecciona un archivo.");
-  //     return;
-  //   }
-
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append("file", fileExcel); // Agregar el archivo al FormData
-
-  //     // console.log("formData", formData);
-
-  //     // const response = await migracion(formData); 
-
-  //     const response = await updatePreciosImportarExcelPorCodigos(formData); // Llamar a la función con el FormData
-
-  //     if (response) {
-  //       //console.log("response data front", response.data);
-
-  //       const fileInput = document.getElementById("fileInput");
-  //       if (fileInput) fileInput.value = "";
-
-  //       // alert("Productos importados con éxito");
-  //     } else {
-  //       alert("Error al importar productos");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error al importar los productos:", error);
-  //   }
-  // };
 
   const handleImportarExcel = async () => {
-    if (!fileExcel) {
-      alert("Por favor, selecciona un archivo.");
-      return;
-    }
-
+    if (!fileExcel) return alert("Selecciona un archivo");
     try {
-      setProcesandoExcel(true); // 🔥 ACTIVAR MODAL
-
+      setProcesandoExcel(true);
       const formData = new FormData();
       formData.append("file", fileExcel);
-
       const response = await updatePreciosImportarExcelPorCodigos(formData);
-
-      if (response) {
-        const fileInput = document.getElementById("fileInput");
-        if (fileInput) fileInput.value = "";
-        alert("PRECIOS ACTUALIZADO con éxito");
-      } else {
-        alert("Error al importar productos");
-      }
-
-      const responseArticulos = await getArticulos();
-      setProducts(responseArticulos);
-
+      if (response) alert("Precios actualizados");
+      fetchData();
     } catch (error) {
-      console.error("Error al importar los productos:", error);
+      console.error(error);
     } finally {
-      setProcesandoExcel(false); // 🔥 DESACTIVAR MODAL SIEMPRE
+      setProcesandoExcel(false);
     }
   };
-
-
-
-  // // update stock
-
-  // const handleImportarExcelStock = async () => {
-
-  //   if (!fileExcel) {
-  //     alert("Por favor, selecciona un archivo.");
-  //     return;
-  //   }
-
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append("file", fileExcel); // Agregar el archivo al FormData
-
-  //     // console.log("formData", formData);
-
-  //     // const response = await migracion(formData); 
-
-  //     const response = await updateStockImportarExcelPorCodigos(formData); // Llamar a la función con el FormData
-
-  //     if (response) {
-  //       //console.log("response data front", response.data);
-
-  //       const fileInput = document.getElementById("fileInput");
-  //       if (fileInput) fileInput.value = "";
-
-  //       alert("Productos importados con éxito");
-
-  //     } else {
-  //       alert("Error al importar productos");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error al importar los productos:", error);
-  //   }
-  // };
 
   const handleImportarExcelStock = async () => {
-    if (!fileExcel) {
-      alert("Por favor, selecciona un archivo.");
-      return;
-    }
-
+    if (!fileExcel) return alert("Selecciona un archivo");
     try {
-      setProcesandoExcel(true); // 🔥 ACTIVAR MODAL
-
+      setProcesandoExcel(true);
       const formData = new FormData();
       formData.append("file", fileExcel);
-
       const response = await updateStockImportarExcelPorCodigos(formData);
-
-      if (response) {
-        const fileInput = document.getElementById("fileInput");
-        if (fileInput) fileInput.value = "";
-        alert("STOCK ACTUALIZADO con éxito");
-      } else {
-        alert("Error al importar productos");
-      }
-
-      const responseArticulos = await getArticulos();
-      setProducts(responseArticulos);
-
+      if (response) alert("Stock actualizado");
+      fetchData();
     } catch (error) {
-      console.error("Error al importar los productos:", error);
+      console.error(error);
     } finally {
-      setProcesandoExcel(false); // 🔥 DESACTIVAR MODAL SIEMPRE
+      setProcesandoExcel(false);
     }
   };
 
+  const handleFileChange = (e) => setFileExcel(e.target.files[0]);
 
-
-  // Manejar la selección de archivo
-  const handleFileChange = (event) => {
-    setFileExcel(event.target.files[0]);
-  };
-
-
-
-  //DELETE
-  const handleDeleteArticulo = async (producto) => {
+  const handleDeleteArticulo = (producto) => {
     setProductoAEliminar(producto);
     setDeleteModalOpen(true);
-    // try {
-
-    //   const resp = await deleteArticulo(id);
-
-    //   if (resp === "") {
-    //     alert('exito al eliminar el articulo:', resp);
-    //     // openSnackBar('El Articulo se ha creado con éxito.', 'success');
-    //   } else {
-    //     console.log('Error al eliminar el articulo:', resp);
-    //     // openSnackBar('No se pudo crear la actividad. Inténtalo de nuevo.', 'error');
-    //   }
-
-    //   const respArt = await getArticulos();
-    //   setProducts(respArt);
-
-    // } catch (error) {
-    //   console.error("Error al eliminar los productos:", error);
-    // }
-  }
-
+  };
 
   const confirmDeleteArticulo = async () => {
     try {
-      const resp = await deleteArticulo(productoAEliminar._id);
-
-      if (resp === "") {
-        alert("✅ Artículo eliminado con éxito");
-      } else {
-        alert("❌ No se pudo eliminar el artículo");
-      }
-
-      const respArt = await getArticulos();
-      setProducts(respArt);
-
+      await deleteArticulo(productoAEliminar._id);
+      fetchData();
     } catch (error) {
-      console.error("Error al eliminar el producto:", error);
-      alert("❌ Error inesperado al eliminar");
+      console.error(error);
     } finally {
       setDeleteModalOpen(false);
-      setProductoAEliminar(null);
     }
   };
 
+  const toggleFamilia = (id) => {
+    setFamiliasSeleccionadas(prev =>
+      prev.includes(id) ? prev.filter(fId => fId !== id) : [...prev, id]
+    );
+  };
 
   return (
-    // <div className="max-w-container mx-auto px-4 mb-9">
-    //   <BreadcrumbsTC title="ADMINISTRAR ARTICULOS" />
-    // </div>
-    <>
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
       <HeaderBottomTC />
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-6">Administrar Productos</h1>
 
-        <div className="mb-8">
-          <button
-            onClick={openCreateModal}
-            className="p-2 bg-green-600 text-white rounded"
-          >
-            Crear Producto
-          </button>
-
-          <button
-            onClick={() => navigate("/descuentos-familias")}
-            className="p-2 ml-4 bg-purple-600 text-white rounded hover:bg-purple-700"
-          >
-            % Descuentos por Familia
-          </button>
-        </div>
-
-
-
-        <div className="flex flex-wrap items-center gap-4 mb-10 p-4 bg-white rounded-xl shadow-sm border">
-          <label className="text-sm font-semibold text-gray-700">
-            ADJUNTAR ARCHIVO:
-          </label>
-
-          <input
-            id="fileInput"
-            type="file"
-            accept=".xlsx, .xls"
-            onChange={handleFileChange}
-            className="
-      file:mr-4 file:py-2 file:px-4
-      file:rounded-lg file:border-0
-      file:text-sm file:font-semibold
-      file:bg-gray-100 file:text-gray-700
-      hover:file:bg-gray-200
-      transition
-      cursor-pointer
-    "
-          />
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+        {/* Page Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Panel de Administración</h1>
+            <p className="mt-1 text-gray-500">Gestiona tus productos, precios y stock de manera eficiente.</p>
+          </div>
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={handleImportarExcel}
-              className="
-        px-4 py-2 rounded-lg text-white font-medium
-        bg-green-600 hover:bg-green-700
-        active:scale-95
-        focus:outline-none focus:ring-2 focus:ring-green-400
-        transition-all duration-200
-        shadow-sm hover:shadow-md
-      "
+              onClick={openCreateModal}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-green-200 transition-all active:scale-95"
             >
-              💲 Actualizar precios
+              <FaPlus size={18} /> Crear Producto
             </button>
-
             <button
-              onClick={handleImportarExcelStock}
-              className="
-        px-4 py-2 rounded-lg text-white font-medium
-        bg-blue-600 hover:bg-blue-700
-        active:scale-95
-        focus:outline-none focus:ring-2 focus:ring-blue-400
-        transition-all duration-200
-        shadow-sm hover:shadow-md
-      "
+              onClick={() => navigate("/descuentos-familias")}
+              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-purple-200 transition-all active:scale-95"
             >
-              📦 Actualizar stock
+              <FaPercent size={18} /> Descuentos
             </button>
-
             <button
-              onClick={() => {
-                const fileInput = document.getElementById("fileInput");
-                if (fileInput) fileInput.value = "";
-              }}
-              className="
-        px-4 py-2 rounded-lg text-white font-medium
-        bg-gray-500 hover:bg-gray-600
-        active:scale-95
-        focus:outline-none focus:ring-2 focus:ring-gray-400
-        transition-all duration-200
-      "
+              onClick={() => navigate("/asignar-grupos-familias")}
+              className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"
             >
-              🧹 Limpiar
+              <FaLayerGroup size={18} /> Asignar Grupos
             </button>
           </div>
         </div>
 
+        {/* Quick Actions Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-8 transform transition-all">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+              <FaFileExcel size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800">Carga Masiva (Excel)</h3>
+          </div>
 
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Filtrar por familia
-          </label>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="flex flex-col gap-4">
+              <label className="text-sm font-bold text-gray-600 uppercase tracking-widest">Paso 1: Adjuntar Archivo</label>
+              <div className="flex items-center gap-4 group">
+                <label className="flex-1 relative cursor-pointer">
+                  <input
+                    id="fileInput"
+                    type="file"
+                    accept=".xlsx, .xls"
+                    onChange={handleFileChange}
+                    className="sr-only"
+                  />
+                  <div className="flex items-center justify-center gap-3 w-full p-4 border-2 border-dashed border-gray-200 group-hover:border-blue-400 rounded-2xl bg-gray-50 group-hover:bg-blue-50 transition-all">
+                    <FaUpload className="text-gray-400 group-hover:text-blue-500" />
+                    <span className="text-gray-600 font-medium group-hover:text-blue-700 truncate max-w-xs">
+                      {fileExcel ? fileExcel.name : "Seleccionar Excel..."}
+                    </span>
+                  </div>
+                </label>
+                {fileExcel && (
+                  <button
+                    onClick={() => { setFileExcel(null); document.getElementById('fileInput').value = ''; }}
+                    className="p-4 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                    title="Quitar archivo"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                )}
+              </div>
+            </div>
 
-          <select
-            value={familiaSeleccionada}
-            onChange={(e) => setFamiliaSeleccionada(e.target.value)}
-            className="px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            <option value="">Todas las familias</option>
-            {familiasOrdenadas?.map((familia) => (
-              <option key={familia._id} value={familia._id}>
-                {familia.descripcion}
-              </option>
-            ))}
-          </select>
+            <div className="flex flex-col gap-4">
+              <label className="text-sm font-bold text-gray-600 uppercase tracking-widest">Paso 2: Ejecutar Acción</label>
+              <div className="flex flex-wrap gap-4">
+                <button
+                  onClick={handleImportarExcel}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gray-800 hover:bg-black text-white rounded-2xl font-bold transition-all disabled:opacity-50"
+                  disabled={!fileExcel || procesandoExcel}
+                >
+                  💲 Actualizar Precios
+                </button>
+                <button
+                  onClick={handleImportarExcelStock}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gray-800 hover:bg-black text-white rounded-2xl font-bold transition-all disabled:opacity-50"
+                  disabled={!fileExcel || procesandoExcel}
+                >
+                  📦 Actualizar Stock
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* Filters Section */}
+        <div className="mb-8 flex flex-wrap items-end gap-6">
+          <div className="relative" ref={filterRef}>
+            <label className="block text-sm font-bold text-gray-600 uppercase tracking-widest mb-3">
+              Filtrar por Familia(s)
+            </label>
+            <button
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="flex items-center justify-between gap-4 w-72 px-5 py-3 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-blue-400 hover:shadow-md transition-all text-left"
+            >
+              <span className="text-gray-700 font-medium truncate">
+                {familiasSeleccionadas.length === 0
+                  ? "Todas las familias"
+                  : `${familiasSeleccionadas.length} seleccionada${familiasSeleccionadas.length > 1 ? 's' : ''}`}
+              </span>
+              <FaFilter className={`transition-colors ${familiasSeleccionadas.length > 0 ? 'text-blue-600' : 'text-gray-400'}`} />
+            </button>
 
+            {showFilterDropdown && (
+              <div className="absolute top-full left-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="p-4 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
+                  <span className="text-xs font-bold text-gray-500 uppercase">Seleccione Familias</span>
+                  {familiasSeleccionadas.length > 0 && (
+                    <button
+                      onClick={() => setFamiliasSeleccionadas([])}
+                      className="text-xs text-blue-600 hover:underline font-bold"
+                    >
+                      Limpiar
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-72 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                  {familiasOrdenadas.map((familia) => {
+                    const isSelected = familiasSeleccionadas.includes(familia._id);
+                    return (
+                      <div
+                        key={familia._id}
+                        onClick={() => toggleFamilia(familia._id)}
+                        className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${isSelected ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50 text-gray-600'
+                          }`}
+                      >
+                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-200'
+                          }`}>
+                          {isSelected && <FaCheck size={10} />}
+                        </div>
+                        <span className="text-sm font-semibold">{familia.descripcion}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
 
+          {familiasSeleccionadas.length > 0 && (
+            <div className="flex flex-wrap gap-2 pb-1">
+              {familiasSeleccionadas.map(id => {
+                const f = familias.find(fam => fam._id === id);
+                return (
+                  <span key={id} className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold border border-blue-200">
+                    {f?.descripcion}
+                    <FaTimes
+                      className="cursor-pointer hover:text-blue-900"
+                      onClick={() => toggleFamilia(id)}
+                    />
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Product Table */}
         {loading ? (
-          <div className="flex justify-center items-center space-x-2">
-            <span className="text-gray-600 font-semibold text-5xl">Cargando...</span>
+          <div className="flex flex-col justify-center items-center py-20 space-y-4">
+            <div className="w-16 h-16 border-4 border-primeColor border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-400 font-bold text-xl animate-pulse">Cargando productos...</p>
           </div>
         ) : (
           <ProductTable
@@ -459,16 +343,16 @@ const AdministrarArticulosPage = () => {
             onDelete={handleDeleteArticulo}
           />
         )}
-
-        {modalOpen && (
-          <ProductModal
-            product={selectedProduct}
-            onClose={closeModal}
-            onSave={handleProductSave}
-            familias={familias}
-          />
-        )}
       </div>
+
+      {modalOpen && (
+        <ProductModal
+          product={selectedProduct}
+          onClose={closeModal}
+          onSave={handleProductSave}
+          familias={familias}
+        />
+      )}
 
       <ConfirmDeleteModal
         isOpen={deleteModalOpen}
@@ -478,23 +362,20 @@ const AdministrarArticulosPage = () => {
       />
 
       {procesandoExcel && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-xl shadow-xl flex flex-col items-center space-y-4">
-            <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-lg font-semibold text-gray-700">
-              Procesando archivo Excel...
-            </p>
-            <p className="text-sm text-gray-500">
-              Esto puede tardar unos segundos
-            </p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] animate-in fade-in duration-300">
+          <div className="bg-white p-10 rounded-3xl shadow-2xl flex flex-col items-center space-y-6 max-w-sm w-full mx-4">
+            <div className="relative">
+              <div className="w-20 h-20 border-4 border-blue-100 rounded-full"></div>
+              <div className="absolute inset-0 w-20 h-20 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Procesando Archivo</h3>
+              <p className="text-gray-500 font-medium">Estamos actualizando la base de datos con tu archivo Excel. Por favor, no cierres esta ventana.</p>
+            </div>
           </div>
         </div>
       )}
-
-    </>
-
-
-
+    </div>
   );
 };
 

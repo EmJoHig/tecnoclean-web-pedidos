@@ -162,7 +162,7 @@ export const GetArticulosCategoria = async (req, res) => {
 // GET FAMILIAS TODAS
 export const GetFamilias = async (req, res) => {
   try {
-    const familias = await Familia.find().populate("grupoId");
+    const familias = await Familia.find().populate("grupoId").sort({ descripcion: 1 });
     res.json(familias);
   }
   catch (error) {
@@ -174,7 +174,7 @@ export const GetFamilias = async (req, res) => {
 // GET FAMILIAS CON ARTICULOS
 export const GetFamiliasConArticulos = async (req, res) => {
   try {
-    const familias = await Familia.find().populate("grupoId");
+    const familias = await Familia.find().populate("grupoId").sort({ descripcion: 1 });
     const familiasConArticulos = [];
 
     if (familias != null && familias.length > 0) {
@@ -1166,5 +1166,41 @@ export const Migracion = async (req, res) => {
   } catch (error) {
     console.error("Error al procesar el Excel:", error);
     res.status(500).json({ error: "Error interno del servidor" });
+  }
+
+};
+
+
+
+// GET GRUPOS FAMILIAS
+export const GetGruposFamilias = async (req, res) => {
+  try {
+    const grupos = await GrupoFamilia.find().sort({ descripcion: 1 });
+    res.json(grupos);
+  } catch (error) {
+    console.error("Error fetching grupos familias:", error);
+    res.status(500).json({ message: "Error fetching grupos familias" });
+  }
+};
+
+// ASIGNAR GRUPO A FAMILIAS
+export const AsignarGrupoAFamilias = async (req, res) => {
+  try {
+    const { grupoId, familiasIds } = req.body;
+
+    if (!grupoId) {
+      return res.status(400).json({ message: "El ID del grupo es requerido" });
+    }
+
+    // Actualizar las familias seleccionadas con el nuevo grupoId
+    await Familia.updateMany(
+      { _id: { $in: familiasIds } },
+      { $set: { grupoId: grupoId } }
+    );
+
+    res.status(200).json({ message: "Grupo asignado exitosamente a las familias seleccionadas", res: true });
+  } catch (error) {
+    console.error("Error asignando grupo a familias:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };
