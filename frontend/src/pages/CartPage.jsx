@@ -12,6 +12,7 @@ import { FaSpinner, FaCheck } from "react-icons/fa";
 import { useAuth0 } from "@auth0/auth0-react";
 import { toast } from "react-toastify";
 import { calcularPrecioItem } from "../utils/calcularPrecioDescuento";
+import MercadoPagoButton from "../components/MercadoPagoButton";
 
 const CartPage = () => {
   const dispatch = useDispatch();
@@ -302,11 +303,26 @@ const CartPage = () => {
                   </p>
                 </div>
                 <div className="flex justify-end">
-                  {/* <Link to="/shop"> */}
-                  <button onClick={handleClickEnviarCarrito} className="w-52 h-10 bg-[#16a34a] text-white hover:bg-[#15803d] duration-300 rounded">
-                    ENVIAR PEDIDO WHATSAPP
-                  </button>
-                  {/* </Link> */}
+                  <div className="flex gap-4">
+                    <button onClick={handleClickEnviarCarrito} className="w-52 h-10 bg-[#16a34a] text-white hover:bg-[#15803d] duration-300 rounded">
+                      ENVIAR PEDIDO WHATSAPP
+                    </button>
+
+                    <MercadoPagoButton
+                      carrito={products.map((item) => {
+                        const p = calcularPrecioItem(item);
+                        const precioUnitFinal = p.descuento > 0 ? p.precioUnit - (p.precioUnit * p.porcentajeDescuento) / 100 : p.precioUnit;
+                        return {
+                          name: item.descripcion || item.name,
+                          quantity: item.quantity || 1,
+                          unit_price: Number(precioUnitFinal || 0),
+                        };
+                      })}
+                      nombreUsuario={user?.name}
+                      telefono={user && user['https://tecnoclean/api/phone_number']}
+                      mailUsuario={user?.email}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
