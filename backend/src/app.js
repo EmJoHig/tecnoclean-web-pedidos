@@ -16,6 +16,7 @@ import indexRoutes from "./routes/index.routes.js";
 import notesRoutes from "./routes/notes.routes.js";
 import userRoutes from "./routes/auth.routes.js";
 import articulosRoutes from "./routes/articulos.routes.js";
+import mercadopagoRoutes from "./routes/mercadopago.routes.js";
 import "./config/passport.js";
 
 
@@ -104,6 +105,7 @@ app.use(indexRoutes);
 app.use(userRoutes);
 app.use(notesRoutes);
 app.use(articulosRoutes);
+app.use('/api/mercadopago', mercadopagoRoutes);
 
 // static files
 app.use(express.static(join(__dirname, "public")));
