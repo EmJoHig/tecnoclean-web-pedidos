@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import BreadcrumbsTC from "../../components/shop/BreadcrumbsTC";;
 import ProductInfoTC from "../../components/shop/ProductInfoTC";
@@ -33,6 +33,146 @@ const tabs = [
   },
   // Add more tabs as needed
 ];
+
+const ImageZoom = ({ src, alt }) => {
+  const [open, setOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const MIN_ZOOM = 0.5;
+  const MAX_ZOOM = 4;
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const startRef = useRef({ x: 0, y: 0, ox: 0, oy: 0 });
+
+  const imgContainerRef = useRef(null);
+
+  const openModal = () => {
+    setOpen(true);
+    setZoom(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const closeModal = () => {
+    setOpen(false);
+    setZoom(1);
+    setOffset({ x: 0, y: 0 });
+    setDragging(false);
+  };
+
+  const onWheel = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoom((z) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(z + delta).toFixed(2))));
+  };
+
+  const onPointerDown = (e) => {
+    e.preventDefault();
+    setDragging(true);
+    const clientX = e.clientX ?? (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY ?? (e.touches && e.touches[0].clientY);
+    startRef.current = { x: clientX, y: clientY, ox: offset.x, oy: offset.y };
+  };
+
+  const onPointerMove = (e) => {
+    if (!dragging) return;
+    const clientX = e.clientX ?? (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY ?? (e.touches && e.touches[0].clientY);
+    const dx = clientX - startRef.current.x;
+    const dy = clientY - startRef.current.y;
+    setOffset({ x: startRef.current.ox + dx, y: startRef.current.oy + dy });
+  };
+
+  const onPointerUp = () => {
+    setDragging(false);
+  };
+
+  // Attach non-passive native listeners for wheel and touch to allow preventDefault
+  useEffect(() => {
+    const el = imgContainerRef.current;
+    if (!el) return;
+
+    const wheelHandler = (e) => {
+      e.preventDefault();
+      onWheel(e);
+    };
+
+    const touchStartHandler = (e) => {
+      onPointerDown(e);
+    };
+
+    const touchMoveHandler = (e) => {
+      onPointerMove(e);
+    };
+
+    const touchEndHandler = (e) => {
+      onPointerUp(e);
+    };
+
+    el.addEventListener('wheel', wheelHandler, { passive: false });
+    el.addEventListener('touchstart', touchStartHandler, { passive: false });
+    el.addEventListener('touchmove', touchMoveHandler, { passive: false });
+    el.addEventListener('touchend', touchEndHandler, { passive: false });
+
+    return () => {
+      el.removeEventListener('wheel', wheelHandler);
+      el.removeEventListener('touchstart', touchStartHandler);
+      el.removeEventListener('touchmove', touchMoveHandler);
+      el.removeEventListener('touchend', touchEndHandler);
+    };
+  }, [imgContainerRef, onWheel, onPointerDown, onPointerMove, onPointerUp]);
+
+  return (
+    <>
+      <div className="relative overflow-hidden w-full h-full group">
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-contain transform transition-transform duration-300 group-hover:scale-110 cursor-zoom-in"
+          onClick={openModal}
+        />
+      </div>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) closeModal();
+          }}
+        >
+          <div className="relative max-w-full max-h-full w-full" style={{ maxWidth: 1200, maxHeight: '90vh' }}>
+            <button
+              onClick={closeModal}
+              className="absolute right-2 top-2 z-50 text-white bg-black bg-opacity-50 rounded-full p-2"
+            >
+              ✕
+            </button>
+
+            <div
+              ref={imgContainerRef}
+              onMouseDown={onPointerDown}
+              onMouseMove={onPointerMove}
+              onMouseUp={onPointerUp}
+              onMouseLeave={onPointerUp}
+              className="w-full h-full flex items-center justify-center cursor-grab"
+              style={{ touchAction: 'none' }}
+            >
+              <img
+                src={src}
+                alt={alt}
+                style={{
+                  transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
+                  transition: dragging ? 'none' : 'transform 150ms ease-out',
+                  maxWidth: '100%',
+                  maxHeight: '90vh',
+                }}
+                draggable={false}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 
 const DetalleArticuloTC = () => {
   const location = useLocation();
@@ -72,17 +212,12 @@ const DetalleArticuloTC = () => {
               src={`http://localhost:4000${productInfo.img.replace(/ /g, "%20")}`}
               alt="imagen"
             /> */}
-            {productInfo.imagen ? (
-              <img
-                className="w-full h-full"
-                src={`${API_URL}${productInfo.imagen.replace(/ /g, "%20")}`}
-                alt="imagen"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                <p className="text-gray-500">no hay ung</p>
-              </div>
-            )}
+            {/* Hardcoded test image to uploads/leviesp.jpg for zoom testing */}
+            <ImageZoom
+              src={`${API_URL}/uploads/images/leviesp.jpg`}
+              alt={productInfo.nombre || "imagen"}
+            />
+            {/* original fallback removed for hardcoded testing */}
           </div>
           <div className="h-full w-full md:col-span-2 xl:col-span-4 xl:px-4 flex flex-col gap-6 justify-center">
             <ProductInfoTC productInfo={productInfo} />
