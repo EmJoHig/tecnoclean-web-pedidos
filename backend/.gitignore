@@ -9,7 +9,11 @@ uploads
 
 # environment variables
 backend/.env
+
+# env files
 .env
+**/.env
+**/.env.*
 
 ## dist
 #dist
