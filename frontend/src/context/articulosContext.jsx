@@ -3,7 +3,16 @@ import { useAuth0 } from "@auth0/auth0-react";
 import {
   getArticulosRequest,
   getFamiliasRequest,
+  getFamiliasPublicRequest,
   getFamiliasConArticulosRequest,
+  getGruposFamiliasRequest,
+  createGrupoFamiliaRequest,
+  updateGrupoFamiliaRequest,
+  deleteGrupoFamiliaRequest,
+  updateFamiliaGrupoRequest,
+  createFamiliaRequest,
+  updateFamiliaRequest,
+  deleteFamiliaRequest,
   UpdateDescuentoFamiliaRequest,
   getFraganciasRequest,
   getArticulosCategoriaRequest,
@@ -33,7 +42,7 @@ export const useArticulos = () => {
 
 export function ArticuloProvider({ children }) {
 
-  const { getAccessTokenSilently } = useAuth0();
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
 
   const [articulos, setArticulos] = useState([]);
 
@@ -180,13 +189,22 @@ export function ArticuloProvider({ children }) {
 
   const GetFamilias = async () => {
     try {
+      let res;
 
-      const token = await getAccessTokenSilently({
-        audience: 'https://tecnoclean/api',
-      });
+      if (isAuthenticated) {
+        try {
+          const token = await getAccessTokenSilently({
+            audience: 'https://tecnoclean/api',
+          });
+          res = await getFamiliasRequest(token);
+        } catch (error) {
+          console.warn("Token no disponible. Se usa endpoint publico de familias.", error);
+          res = await getFamiliasPublicRequest();
+        }
+      } else {
+        res = await getFamiliasPublicRequest();
+      }
 
-
-      const res = await getFamiliasRequest(token);
       setFamilias(res.data);
       return res.data;
     } catch (error) {
@@ -209,6 +227,123 @@ export function ArticuloProvider({ children }) {
     } catch (error) {
       console.error('Error fetching articulos:', error);
       return [];
+    }
+  };
+
+
+  const GetGruposFamilias = async () => {
+    try {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await getGruposFamiliasRequest(token);
+      return res.data;
+    } catch (error) {
+      console.error('Error fetching grupos de familias:', error);
+      return [];
+    }
+  };
+
+
+  const CreateGrupoFamilia = async (descripcion) => {
+    try {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await createGrupoFamiliaRequest(token, descripcion);
+      return res.data;
+    } catch (error) {
+      console.error('Error creating grupo de familia:', error);
+      throw error;
+    }
+  };
+
+
+  const UpdateGrupoFamilia = async (id, descripcion) => {
+    try {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await updateGrupoFamiliaRequest(token, id, descripcion);
+      return res.data;
+    } catch (error) {
+      console.error('Error updating grupo de familia:', error);
+      throw error;
+    }
+  };
+
+
+  const DeleteGrupoFamilia = async (id) => {
+    try {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await deleteGrupoFamiliaRequest(token, id);
+      return res.data;
+    } catch (error) {
+      console.error('Error deleting grupo de familia:', error);
+      throw error;
+    }
+  };
+
+
+  const UpdateFamiliaGrupo = async (familiaId, grupoId) => {
+    try {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await updateFamiliaGrupoRequest(token, familiaId, grupoId);
+      return res.data;
+    } catch (error) {
+      console.error('Error updating grupo de familia:', error);
+      throw error;
+    }
+  };
+
+  const CreateFamilia = async (familia) => {
+    try {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await createFamiliaRequest(token, familia);
+      return res.data;
+    } catch (error) {
+      console.error('Error creating familia:', error);
+      throw error;
+    }
+  };
+
+  const UpdateFamilia = async (id, familia) => {
+    try {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await updateFamiliaRequest(token, id, familia);
+      return res.data;
+    } catch (error) {
+      console.error('Error updating familia:', error);
+      throw error;
+    }
+  };
+
+  const DeleteFamilia = async (id) => {
+    try {
+      const token = await getAccessTokenSilently({
+        audience: 'https://tecnoclean/api',
+      });
+
+      const res = await deleteFamiliaRequest(token, id);
+      return res.data;
+    } catch (error) {
+      console.error('Error deleting familia:', error);
+      throw error;
     }
   };
 
@@ -529,6 +664,14 @@ export function ArticuloProvider({ children }) {
         GetArticulosQuery,
         GetFamilias,
         GetFamiliasConArticulos,
+        GetGruposFamilias,
+        CreateGrupoFamilia,
+        UpdateGrupoFamilia,
+        DeleteGrupoFamilia,
+        UpdateFamiliaGrupo,
+        CreateFamilia,
+        UpdateFamilia,
+        DeleteFamilia,
         UpdateDescuentoFamilia,
         GetFragancias,
         deleteArticulo,

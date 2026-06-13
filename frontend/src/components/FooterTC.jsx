@@ -28,7 +28,7 @@ const FooterTC = () => {
     }
   };
   return (
-    <div className="w-full bg-[#e00725] py-20" style={{ marginTop: "30px" }}>
+    <div className="w-full bg-[#e00725] py-20" style={{ marginTop: "0px" }}>
       <div className="max-w-container mx-auto grid grid-cols-1 md:grid-cols-2  xl:grid-cols-6 px-4 gap-10">
         <div className="col-span-2">
           <FooterListTitleTC title=" Sobre Nosotros" />

@@ -41,6 +41,7 @@ import CartPage from './pages/CartPage';
 import DetalleArticuloPage from "./pages/DetalleArticuloPage";
 import AdministrarArticulosPage from "./pages/AdministrarArticulosPage";
 import FamiliasDescuentosPage from './pages/FamiliasDescuentosPage';
+import GruposFamiliasPage from "./pages/GruposFamiliasPage";
 
 // import RegisterPage from "./pages/RegisterPage";
 // import { LoginPage } from "./pages/LoginPage";
@@ -133,6 +134,7 @@ function App() {
                       <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                         <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} />
                         <Route path="/descuentos-familias" element={<FamiliasDescuentosPage />} />
+                        <Route path="/grupos-familias" element={<GruposFamiliasPage />} />
                       </Route>
                       
                     </Route>

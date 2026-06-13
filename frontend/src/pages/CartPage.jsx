@@ -8,7 +8,7 @@ import { resetCart } from "../redux/orebiSlice";
 import { emptyCart } from "../assets/images/index";
 import ItemCardTC from "../components/cart/ItemCardTC";
 import { useArticulos } from "../context/articulosContext";
-import { FaSpinner, FaCheck } from "react-icons/fa";
+import { FaSpinner, FaCheck, FaWhatsapp } from "react-icons/fa";
 import { useAuth0 } from "@auth0/auth0-react";
 import { toast } from "react-toastify";
 import { calcularPrecioItem } from "../utils/calcularPrecioDescuento";
@@ -216,9 +216,9 @@ const CartPage = () => {
     } catch (error) {
 
     }
-    // finally{
-    //   setLoadingSendMsg(false);
-    // }
+    finally{
+      setLoadingSendMsg(false);
+    }
   }
 
   const handleClickCerrarModal = async () => {
@@ -301,12 +301,28 @@ const CartPage = () => {
                     </span>
                   </p>
                 </div>
+                <div className="mt-2 p-3 bg-white/5 rounded text-sm text-gray-800">
+                  <strong>Cómo funciona el descuento:</strong>
+                  <p className="mt-1 text-sm">Los descuentos se aplican por familia o promoción y ya están calculados en los totales mostrados. Al enviar el pedido armado a nuestro WhatsApp, el equipo confirmará el descuento y envío.</p>
+                </div>
                 <div className="flex justify-end">
-                  {/* <Link to="/shop"> */}
-                  <button onClick={handleClickEnviarCarrito} className="w-52 h-10 bg-[#16a34a] text-white hover:bg-[#15803d] duration-300 rounded">
-                    ENVIAR PEDIDO WHATSAPP
-                  </button>
-                  {/* </Link> */}
+                  {/* Botón mejorado con movimiento y estado */}
+                  <motion.button
+                    onClick={handleClickEnviarCarrito}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-56 h-12 bg-gradient-to-r from-emerald-400 to-emerald-600 text-white font-semibold rounded-lg shadow-lg flex items-center justify-center gap-3 px-4"
+                    disabled={loadingSendMsg || loading}
+                  >
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20">
+                      {loadingSendMsg || loading ? (
+                        <FaSpinner className="animate-spin text-white" />
+                      ) : (
+                        <FaWhatsapp className="text-white" />
+                      )}
+                    </span>
+                    <span className="uppercase">Enviar pedido por WhatsApp</span>
+                  </motion.button>
                 </div>
               </div>
             </div>

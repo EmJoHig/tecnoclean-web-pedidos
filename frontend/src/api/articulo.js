@@ -145,6 +145,17 @@ export const getFamiliasRequest = async (token) => {
 };
 
 
+export const getFamiliasPublicRequest = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/articulos/getFamiliasPublic`);
+        return response;
+    } catch (error) {
+        console.error("Error fetching public familias:", error);
+        throw error;
+    }
+};
+
+
 export const getFamiliasConArticulosRequest = async (token) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/getFamiliasConArticulos`, {
@@ -156,6 +167,165 @@ export const getFamiliasConArticulosRequest = async (token) => {
         return response;
     } catch (error) {
         console.error("Error fetching articles by category:", error);
+        throw error;
+    }
+};
+
+
+export const getGruposFamiliasRequest = async (token) => {
+    try {
+        const response = await axios.get(`${API_URL}/familias/grupos`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching grupos de familias:", error);
+        throw error;
+    }
+};
+
+
+export const createGrupoFamiliaRequest = async (token, descripcion) => {
+    try {
+        const response = await axios.post(
+            `${API_URL}/familias/grupos`,
+            { descripcion },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error("Error creating grupo de familia:", error);
+        throw error;
+    }
+};
+
+
+    export const updateGrupoFamiliaRequest = async (token, id, descripcion) => {
+        try {
+            const response = await axios.put(
+                `${API_URL}/familias/grupos/${id}`,
+                { descripcion },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            return response;
+        } catch (error) {
+            console.error("Error updating grupo de familia:", error);
+            throw error;
+        }
+    };
+
+
+    export const deleteGrupoFamiliaRequest = async (token, id) => {
+        try {
+            const response = await axios.delete(
+                `${API_URL}/familias/grupos/${id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            return response;
+        } catch (error) {
+            console.error("Error deleting grupo de familia:", error);
+            throw error;
+        }
+    };
+
+
+export const updateFamiliaGrupoRequest = async (token, familiaId, grupoId) => {
+    try {
+        const response = await axios.post(
+            `${API_URL}/familias/update-grupo`,
+            { familiaId, grupoId },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error("Error updating grupo de familia:", error);
+        throw error;
+    }
+};
+
+
+export const createFamiliaRequest = async (token, familia) => {
+    try {
+        const response = await axios.post(
+            `${API_URL}/familias`,
+            familia,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error("Error creating familia:", error);
+        throw error;
+    }
+};
+
+
+export const updateFamiliaRequest = async (token, id, familia) => {
+    try {
+        const response = await axios.put(
+            `${API_URL}/familias/${id}`,
+            familia,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error("Error updating familia:", error);
+        throw error;
+    }
+};
+
+
+export const deleteFamiliaRequest = async (token, id) => {
+    try {
+        const response = await axios.delete(
+            `${API_URL}/familias/${id}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error("Error deleting familia:", error);
         throw error;
     }
 };

@@ -354,6 +354,13 @@ const AdministrarArticulosPage = () => {
           >
             % Descuentos por Familia
           </button>
+
+          <button
+            onClick={() => navigate("/grupos-familias")}
+            className="p-2 ml-4 bg-slate-700 text-white rounded hover:bg-slate-800"
+          >
+            Grupos de Familias
+          </button>
         </div>
 
 

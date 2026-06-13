@@ -8,6 +8,7 @@ import { toggleCategory } from "../../redux/orebiSlice";
 import { useArticulos } from "../../context/articulosContext";
 
 const CategoryTC = () => {
+  const sinGrupoLabel = "Sin grupo";
   const [openGrupo, setOpenGrupo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [familiasAgrupadas, setFamiliasAgrupadas] = useState({});
@@ -38,6 +39,7 @@ const CategoryTC = () => {
       const grupoDescripcion = familia.grupoId?.descripcion;
 
       if (!grupoDescripcion || grupoDescripcion.trim() === "") return;
+      if (grupoDescripcion.trim().toLowerCase() === sinGrupoLabel.toLowerCase()) return;
 
       if (!resultado[grupoDescripcion]) {
         resultado[grupoDescripcion] = [];

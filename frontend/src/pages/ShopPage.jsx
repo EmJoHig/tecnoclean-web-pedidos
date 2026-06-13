@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import HeaderBottomTC from "../components/HeaderBottomTC";
+import DiscountsBanner from "../components/DiscountsBanner";
 import BreadcrumbsTC from "../components/shop/BreadcrumbsTC";
 import PaginationTC from "../components/shop/PaginationTC";
 import ProductBannerTC from "../components/shop/ProductBannerTC";
 import ShopSideNavTC from "../components/shop/ShopSideNavTC";
-import { filterSeccion } from "../redux/orebiSlice";
+import { filterSeccion, toggleCategory } from "../redux/orebiSlice";
 import { useArticulos } from "../context/articulosContext";
 
 
@@ -109,6 +110,14 @@ const ShopPage = () => {
     setSelectedSeccion(seccionId);
   };
 
+  const handleVerProductosDescuento = (familia) => {
+    if (!familia) return;
+
+    checkedCategorys.forEach((cat) => dispatch(toggleCategory(cat)));
+
+    dispatch(toggleCategory(familia));
+  };
+
 
 
   //probar que cosa no anda si  descomento esto
@@ -154,35 +163,17 @@ const ShopPage = () => {
 
   return (
     <>
-      {showPromo && familiasConDescuento?.length > 0 && (
-        <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white shadow-md">
-
-          <div className="max-w-container mx-auto px-4 py-2 flex items-center justify-center">
-
-            <div className="text-sm md:text-[15px] font-medium tracking-wide flex items-center gap-4 flex-wrap justify-center">
-              {promoTexto.map((promo, i) => (
-                <React.Fragment key={i}>
-                  {i > 0 && <span className="opacity-60">•</span>}
-                  {promo}
-                </React.Fragment>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setShowPromo(false)}
-              className="absolute right-4 text-white/70 hover:text-white text-lg transition"
-            >
-              ✕
-            </button>
-
-          </div>
+      <div className="bg-[#f7f4f5]">
+        <div className="max-w-container mx-auto px-4 pt-7">
+          <DiscountsBanner
+            familias={familiasConDescuento}
+            variant="inline"
+            onViewProducts={handleVerProductosDescuento}
+          />
         </div>
-      )}
-
-
-      <HeaderBottomTC />
-      <div className="max-w-container mx-auto px-4">
-        <BreadcrumbsTC title="Tienda" />
+        <HeaderBottomTC />
+        <div className="max-w-container mx-auto px-4">
+          <BreadcrumbsTC title="Tienda" />
 
 
         {/* FILTROS DE SECCIONES */}
@@ -211,11 +202,11 @@ const ShopPage = () => {
 
 
 
-        <div className="w-full h-full flex pb-20 gap-10">
-          <div className="w-[20%] lgl:w-[25%] hidden mdl:inline-flex h-full">
-            <ShopSideNavTC />
-          </div>
-          <div className="w-full mdl:w-[80%] lgl:w-[75%] h-full flex flex-col gap-10">
+          <div className="w-full h-full flex pb-20 gap-10">
+            <div className="w-[20%] lgl:w-[25%] hidden mdl:inline-flex h-full">
+              <ShopSideNavTC />
+            </div>
+            <div className="w-full mdl:w-[80%] lgl:w-[75%] h-full flex flex-col gap-10">
             {/* <ProductBannerTC itemsPerPageFromBanner={itemsPerPageFromBanner} /> */}
 
             {/* {articulos && articulos.length > 0 ? (
@@ -242,6 +233,7 @@ const ShopPage = () => {
             )}
 
 
+            </div>
           </div>
         </div>
       </div>
