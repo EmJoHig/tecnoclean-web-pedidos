@@ -11,6 +11,10 @@ import xlsx from "xlsx";
 
 import whatsapp from "../libs/whatsapp.js";
 import mongoose from "mongoose";
+import { TELEFONO_WHATSAPP } from "../config.js";
+
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // const app = express();
 // app.use(express.json());
@@ -171,6 +175,299 @@ export const GetFamilias = async (req, res) => {
   }
 };
 
+// GET GRUPOS DE FAMILIAS
+export const GetGruposFamilias = async (req, res) => {
+  try {
+    const grupos = await GrupoFamilia.find()
+      .collation({ locale: "es", strength: 1 })
+      .sort({ descripcion: 1 });
+    res.json(grupos);
+  } catch (error) {
+    console.error("Error fetching grupos de familias:", error);
+    res.status(500).json({ message: "Error fetching grupos de familias" });
+  }
+};
+
+// CREAR GRUPO DE FAMILIA
+export const CreateGrupoFamilia = async (req, res) => {
+  try {
+    const descripcionRaw = req.body?.descripcion;
+    const descripcion = typeof descripcionRaw === "string" ? descripcionRaw.trim() : "";
+
+    if (!descripcion) {
+      return res.status(400).json({ message: "Descripcion requerida" });
+    }
+
+    const existing = await GrupoFamilia.findOne({
+      descripcion: new RegExp(`^${escapeRegex(descripcion)}$`, "i")
+    });
+
+    if (existing) {
+      return res.status(200).json(existing);
+    }
+
+    const grupo = await GrupoFamilia.create({ descripcion });
+    return res.status(201).json(grupo);
+  } catch (error) {
+    console.error("Error creating grupo de familia:", error);
+    res.status(500).json({ message: "Error creating grupo de familia" });
+  }
+};
+
+// ACTUALIZAR GRUPO DE FAMILIA
+export const UpdateGrupoFamilia = async (req, res) => {
+  try {
+    const { id } = req.params || {};
+    const descripcionRaw = req.body?.descripcion;
+    const descripcion = typeof descripcionRaw === "string" ? descripcionRaw.trim() : "";
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Grupo invalido" });
+    }
+
+    if (!descripcion) {
+      return res.status(400).json({ message: "Descripcion requerida" });
+    }
+
+    const existing = await GrupoFamilia.findOne({
+      descripcion: new RegExp(`^${escapeRegex(descripcion)}$`, "i"),
+    });
+
+    if (existing && existing._id.toString() !== id) {
+      return res.status(409).json({ message: "El grupo ya existe" });
+    }
+
+    const actualizado = await GrupoFamilia.findByIdAndUpdate(
+      id,
+      { $set: { descripcion } },
+      { new: true }
+    );
+
+    if (!actualizado) {
+      return res.status(404).json({ message: "Grupo no encontrado" });
+    }
+
+    return res.status(200).json(actualizado);
+  } catch (error) {
+    console.error("Error updating grupo de familia:", error);
+    res.status(500).json({ message: "Error updating grupo de familia" });
+  }
+};
+
+// ELIMINAR GRUPO DE FAMILIA
+export const DeleteGrupoFamilia = async (req, res) => {
+  try {
+    const { id } = req.params || {};
+    const sinGrupoRegex = new RegExp(`^${escapeRegex("Sin grupo")}$`, "i");
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Grupo invalido" });
+    }
+
+    const grupo = await GrupoFamilia.findById(id);
+    if (!grupo) {
+      return res.status(404).json({ message: "Grupo no encontrado" });
+    }
+
+    if (sinGrupoRegex.test(grupo.descripcion)) {
+      return res.status(400).json({ message: "No se puede eliminar este grupo" });
+    }
+
+    let sinGrupo = await GrupoFamilia.findOne({ descripcion: sinGrupoRegex });
+    if (!sinGrupo) {
+      sinGrupo = await GrupoFamilia.create({ descripcion: "Sin grupo" });
+    }
+
+    const result = await Familia.updateMany(
+      { grupoId: grupo._id },
+      { $set: { grupoId: sinGrupo._id } }
+    );
+
+    await GrupoFamilia.deleteOne({ _id: grupo._id });
+
+    return res.status(200).json({
+      deletedId: grupo._id,
+      reasignadas: result?.modifiedCount || 0,
+      sinGrupoId: sinGrupo._id,
+    });
+  } catch (error) {
+    console.error("Error deleting grupo de familia:", error);
+    res.status(500).json({ message: "Error deleting grupo de familia" });
+  }
+};
+
+// ACTUALIZAR GRUPO DE FAMILIA EN UNA FAMILIA
+export const UpdateFamiliaGrupo = async (req, res) => {
+  try {
+    const { familiaId, grupoId } = req.body || {};
+
+    if (!mongoose.Types.ObjectId.isValid(familiaId)) {
+      return res.status(400).json({ message: "Familia invalida" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(grupoId)) {
+      return res.status(400).json({ message: "Grupo invalido" });
+    }
+
+    const grupo = await GrupoFamilia.findById(grupoId);
+    if (!grupo) {
+      return res.status(404).json({ message: "Grupo no encontrado" });
+    }
+
+    const familiaActualizada = await Familia.findByIdAndUpdate(
+      familiaId,
+      { $set: { grupoId } },
+      { new: true }
+    ).populate("grupoId");
+
+    if (!familiaActualizada) {
+      return res.status(404).json({ message: "Familia no encontrada" });
+    }
+
+    return res.status(200).json(familiaActualizada);
+  } catch (error) {
+    console.error("Error updating grupo de familia:", error);
+    res.status(500).json({ message: "Error updating grupo de familia" });
+  }
+};
+
+// CREAR FAMILIA
+export const CreateFamilia = async (req, res) => {
+  try {
+    const codigoRaw = req.body?.codigo;
+    const descripcionRaw = req.body?.descripcion;
+    const grupoId = req.body?.grupoId;
+    const codigo = typeof codigoRaw === "string" ? codigoRaw.trim() : "";
+    const descripcion = typeof descripcionRaw === "string" ? descripcionRaw.trim() : "";
+
+    if (!codigo || !descripcion) {
+      return res.status(400).json({ message: "Codigo y descripcion requeridos" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(grupoId)) {
+      return res.status(400).json({ message: "Grupo invalido" });
+    }
+
+    const grupo = await GrupoFamilia.findById(grupoId);
+    if (!grupo) {
+      return res.status(404).json({ message: "Grupo no encontrado" });
+    }
+
+    const existingCodigo = await Familia.findOne({
+      codigo: new RegExp(`^${escapeRegex(codigo)}$`, "i"),
+    });
+
+    if (existingCodigo) {
+      return res.status(409).json({ message: "El codigo de familia ya existe" });
+    }
+
+    const existingDescripcion = await Familia.findOne({
+      descripcion: new RegExp(`^${escapeRegex(descripcion)}$`, "i"),
+    });
+
+    if (existingDescripcion) {
+      return res.status(409).json({ message: "La familia ya existe" });
+    }
+
+    const familia = await Familia.create({ codigo, descripcion, grupoId });
+    const familiaPopulada = await Familia.findById(familia._id).populate("grupoId");
+
+    return res.status(201).json(familiaPopulada);
+  } catch (error) {
+    console.error("Error creating familia:", error);
+    res.status(500).json({ message: "Error creating familia" });
+  }
+};
+
+// ACTUALIZAR FAMILIA
+export const UpdateFamilia = async (req, res) => {
+  try {
+    const { id } = req.params || {};
+    const codigoRaw = req.body?.codigo;
+    const descripcionRaw = req.body?.descripcion;
+    const grupoId = req.body?.grupoId;
+    const codigo = typeof codigoRaw === "string" ? codigoRaw.trim() : "";
+    const descripcion = typeof descripcionRaw === "string" ? descripcionRaw.trim() : "";
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Familia invalida" });
+    }
+
+    if (!codigo || !descripcion) {
+      return res.status(400).json({ message: "Codigo y descripcion requeridos" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(grupoId)) {
+      return res.status(400).json({ message: "Grupo invalido" });
+    }
+
+    const grupo = await GrupoFamilia.findById(grupoId);
+    if (!grupo) {
+      return res.status(404).json({ message: "Grupo no encontrado" });
+    }
+
+    const existingCodigo = await Familia.findOne({
+      codigo: new RegExp(`^${escapeRegex(codigo)}$`, "i"),
+    });
+
+    if (existingCodigo && existingCodigo._id.toString() !== id) {
+      return res.status(409).json({ message: "El codigo de familia ya existe" });
+    }
+
+    const existingDescripcion = await Familia.findOne({
+      descripcion: new RegExp(`^${escapeRegex(descripcion)}$`, "i"),
+    });
+
+    if (existingDescripcion && existingDescripcion._id.toString() !== id) {
+      return res.status(409).json({ message: "La familia ya existe" });
+    }
+
+    const familiaActualizada = await Familia.findByIdAndUpdate(
+      id,
+      { $set: { codigo, descripcion, grupoId } },
+      { new: true }
+    ).populate("grupoId");
+
+    if (!familiaActualizada) {
+      return res.status(404).json({ message: "Familia no encontrada" });
+    }
+
+    return res.status(200).json(familiaActualizada);
+  } catch (error) {
+    console.error("Error updating familia:", error);
+    res.status(500).json({ message: "Error updating familia" });
+  }
+};
+
+// ELIMINAR FAMILIA
+export const DeleteFamilia = async (req, res) => {
+  try {
+    const { id } = req.params || {};
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Familia invalida" });
+    }
+
+    const articulosAsociados = await Articulo.countDocuments({ familiaArticulo: id });
+    if (articulosAsociados > 0) {
+      return res.status(409).json({
+        message: "No se puede eliminar una familia con articulos asociados",
+      });
+    }
+
+    const familiaEliminada = await Familia.findByIdAndDelete(id);
+
+    if (!familiaEliminada) {
+      return res.status(404).json({ message: "Familia no encontrada" });
+    }
+
+    return res.status(200).json({ deletedId: familiaEliminada._id });
+  } catch (error) {
+    console.error("Error deleting familia:", error);
+    res.status(500).json({ message: "Error deleting familia" });
+  }
+};
+
 // GET FAMILIAS CON ARTICULOS
 export const GetFamiliasConArticulos = async (req, res) => {
   try {
@@ -314,50 +611,91 @@ export const GetArticulosQuery = async (req, res) => {
 
 
 const generarMensaje = (bodyCarritoUsuario) => {
-  // let mensaje = "¡Hola! Aquí tienes tu pedido:\n\n";
-  // carrito.forEach(item => {
-  //   mensaje += `- ${item.name}: ${item.quantity} unidad(es)\n`;
-  //   if(item.fragancia != "") {
-  //     mensaje += `  Fragancia: ${item.fragancia}\n`;
-  //   }
-  // });
-  // return mensaje.trim();
+  // Mensaje profesional para WhatsApp: usamos ~tachado~ y *negrita* para resaltar precios
+  const formatMoney = (v) =>
+    Number(v || 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  let mensaje = "🛒 ¡ ¡ ¡ NUEVO PEDIDO ! ! !*\n\n";
-  mensaje += ` *EMAIL:* ${bodyCarritoUsuario.mailUsuario}\n`;
-  mensaje += ` *NOMBRE:* ${bodyCarritoUsuario.nombreUsuario}\n`;
-  mensaje += ` *TELEFONO:* ${bodyCarritoUsuario.telefono}\n\n`;
-  mensaje += " *Artículos:*\n\n";
-  bodyCarritoUsuario.articulos.forEach(item => {
+  let mensaje = "🛒 *NUEVO PEDIDO* \n\n";
+  mensaje += `*Email:* ${bodyCarritoUsuario.mailUsuario} \n`;
+  mensaje += `*Nombre:* ${bodyCarritoUsuario.nombreUsuario} \n`;
+  mensaje += `*Tel:* ${bodyCarritoUsuario.telefono} \n\n`;
+  mensaje += "*Artículos:* \n";
+
+  bodyCarritoUsuario.articulos.forEach((item) => {
+    // calcular precio unitario original si viene subtotalSinDescuento
+    let originalUnit = null;
+    if (item.subtotalSinDescuento && item.quantity) {
+      originalUnit = Number(item.subtotalSinDescuento) / Number(item.quantity);
+    }
+
     mensaje += `• ${item.name}\n`;
     mensaje += `  Cantidad: ${item.quantity}\n`;
+
     if (item.fragancia) {
       mensaje += `  Fragancia: ${item.fragancia}\n`;
     }
-    if (item.fraccion) {
-      mensaje += `  Fracción: ${item.fraccion}\n`;
-    }
 
-    if (item.color && item.color != "") {
+    if (item.color && item.color !== "") {
       mensaje += `  Color: ${item.color}\n`;
     }
 
-    // ✅ TOTAL DEL ITEM (cantidad + descuento aplicado)
-    if (item.totalItem != null) {
-      mensaje += `  Total: $ ${item.totalItem.toLocaleString("es-AR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}\n`;
+    // Mostrar precio unitario: precio original tachado (si existe) y precio final en negrita
+    const tieneDescuento = item.descuentoPorcentaje && Number(item.descuentoPorcentaje) > 0;
+
+    if (tieneDescuento && originalUnit) {
+      mensaje += `  Precio unitario: ~$ ${formatMoney(originalUnit)}~  *$ ${formatMoney(item.precioUnitario || originalUnit)}*\n`;
+    } else if (item.precioUnitario) {
+      mensaje += `  Precio unitario: *$ ${formatMoney(item.precioUnitario)}*\n`;
     }
 
-    mensaje += "\n";
+    if (tieneDescuento) {
+      mensaje += `  Descuento: ${item.descuentoPorcentaje}% \n`;
+    }
+
+    if (item.totalItem != null) {
+      mensaje += `  Subtotal item: *$ ${formatMoney(item.totalItem)}*\n`;
+    }
+
+    mensaje += `\n`;
   });
 
-  mensaje += "\n";
-  mensaje += `  PRECIO TOTAL: $ ${bodyCarritoUsuario.precioTotal.toLocaleString("es-AR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}\n`;
+  // Calculamos precios totales: con y sin descuento (si vienen en el body, los usamos)
+  let precioConDescuento = null;
+  let precioSinDescuento = null;
+
+  if (bodyCarritoUsuario.precioTotal != null) {
+    precioConDescuento = Number(bodyCarritoUsuario.precioTotal);
+  } else {
+    // sumar totalItem
+    precioConDescuento = bodyCarritoUsuario.articulos.reduce((acc, it) => {
+      const v = it.totalItem != null ? Number(it.totalItem) : (it.precioUnitario != null ? Number(it.precioUnitario) * Number(it.quantity || 0) : 0);
+      return acc + v;
+    }, 0);
+  }
+
+  if (bodyCarritoUsuario.precioTotalSinDescuento != null) {
+    precioSinDescuento = Number(bodyCarritoUsuario.precioTotalSinDescuento);
+  } else {
+    // sumar subtotalSinDescuento si existe, si no calcular desde precio original por item
+    precioSinDescuento = bodyCarritoUsuario.articulos.reduce((acc, it) => {
+      if (it.subtotalSinDescuento != null) return acc + Number(it.subtotalSinDescuento);
+      if (it.subtotal != null && it.subtotal !== it.totalItem) return acc + Number(it.subtotal);
+      // intentar calcular desde precio unitario original
+      if (it.subtotalSinDescuento == null && it.quantity && it.subtotalSinDescuento == null) {
+        // si no hay dato, intentamos con precioUnitario sin descuento (no siempre disponible)
+        return acc + (it.precioUnitario != null ? Number(it.precioUnitario) * Number(it.quantity) : 0);
+      }
+      return acc;
+    }, 0);
+  }
+
+  // Mostrar ambos totales: sin descuento (tachado) y con descuento (en negrita y más visible)
+  mensaje += `*PRECIO TOTAL SIN DESCUENTO:* ~$ ${formatMoney(precioSinDescuento)}~\n\n`;
+  mensaje += `*PRECIO TOTAL CON DESCUENTO:*\n`;
+  mensaje += `*🔥 $ ${formatMoney(precioConDescuento)} 🔥*\n\n`;
+
+  mensaje += `Aguarda la confirmación de disponibilidad por parte de nuestro equipo.
+              Nota: Los descuentos indicados se aplican por familia o promoción. `;
 
   return mensaje.trim();
 
@@ -385,7 +723,7 @@ export const EnviarCarritoWsp = async (req, res) => {
     // const tel = '542215937093'; // sin el + adelante
 
     // tel negocio: +54 9 2213 18-8915 
-    const tel = '542213188915'; // sin el + adelante
+    const tel = TELEFONO_WHATSAPP; // sin el + adelante
 
 
     // Codificamos el mensaje para URL
@@ -1010,6 +1348,7 @@ export const CalcularPrecioArticulo = async (req, res) => {
 // ENDPOINT PARA ACTUALIZAR STOCK DE ARTICULOS POR EXCEL SEGUN CODIGO DEL SISTEMA (NUEVO) A MI WEB PEDIDOS
 export const ActualizarStockExcelPorCodigo = async (req, res) => {
   const formDataExcel = req.file;
+  const familiasStockFijo = new Set(["LIQUIDOS", "JABONROPA", "SUAVIZ"]);
 
   if (!formDataExcel) {
     return res.status(400).json({ error: "No se subió ningún archivo" });
@@ -1040,10 +1379,19 @@ export const ActualizarStockExcelPorCodigo = async (req, res) => {
       }
 
       try {
-        const productoEnDB = await Articulo.findOne({ codigo: producto.codigo });
+        const productoEnDB = await Articulo.findOne({ codigo: producto.codigo })
+          .populate("familiaArticulo", "codigo descripcion");
 
         if (productoEnDB) {
-          productoEnDB.stock = producto.stock;
+          const codigoFamilia = productoEnDB.familiaArticulo?.codigo
+            ?.toString()
+            .trim()
+            .toUpperCase();
+
+          productoEnDB.stock = familiasStockFijo.has(codigoFamilia)
+            ? 100
+            : producto.stock;
+
           await productoEnDB.save();
 
           resultados.push({

@@ -8,6 +8,14 @@ import {
   GetArticulosQuery,
   GetFamilias,
   GetFamiliasConArticulos,
+  GetGruposFamilias,
+  CreateGrupoFamilia,
+  UpdateGrupoFamilia,
+  DeleteGrupoFamilia,
+  UpdateFamiliaGrupo,
+  CreateFamilia,
+  UpdateFamilia,
+  DeleteFamilia,
   UpdateDescuentoFamilia,
   GetFragancias,
   EnviarCarritoWsp,
@@ -114,9 +122,27 @@ router.get("/articulos/getArticulosPorCategoria", jwtCheck, GetArticulosCategori
 
 router.get("/articulos/getArticulosQuery", jwtCheck, GetArticulosQuery);
 
+router.get("/articulos/getFamiliasPublic", GetFamilias);
+
 router.get("/articulos/getFamilias", jwtCheck, GetFamilias);
 
 router.get("/articulos/getFamiliasConArticulos", jwtCheck, GetFamiliasConArticulos);
+
+router.get("/familias/grupos", jwtCheck, GetGruposFamilias);
+
+router.post("/familias/grupos", jwtCheck, CreateGrupoFamilia);
+
+router.put("/familias/grupos/:id", jwtCheck, UpdateGrupoFamilia);
+
+router.delete("/familias/grupos/:id", jwtCheck, DeleteGrupoFamilia);
+
+router.post("/familias/update-grupo", jwtCheck, UpdateFamiliaGrupo);
+
+router.post("/familias", jwtCheck, CreateFamilia);
+
+router.put("/familias/:id", jwtCheck, UpdateFamilia);
+
+router.delete("/familias/:id", jwtCheck, DeleteFamilia);
 
 router.post("/familias/update-descuento-familia", jwtCheck, UpdateDescuentoFamilia);
 
