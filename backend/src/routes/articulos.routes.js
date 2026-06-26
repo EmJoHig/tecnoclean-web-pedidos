@@ -118,15 +118,15 @@ const jwtCheck = auth({
 
 router.get("/articulos/getArticulos", jwtCheck, GetArticulos);
 
-router.get("/articulos/getArticulosPorCategoria", jwtCheck, GetArticulosCategoria);
+router.get("/articulos/getArticulosPorCategoria", GetArticulosCategoria);
 
-router.get("/articulos/getArticulosQuery", jwtCheck, GetArticulosQuery);
+router.get("/articulos/getArticulosQuery", GetArticulosQuery);
 
 router.get("/articulos/getFamiliasPublic", GetFamilias);
 
 router.get("/articulos/getFamilias", jwtCheck, GetFamilias);
 
-router.get("/articulos/getFamiliasConArticulos", jwtCheck, GetFamiliasConArticulos);
+router.get("/articulos/getFamiliasConArticulos", GetFamiliasConArticulos);
 
 router.get("/familias/grupos", jwtCheck, GetGruposFamilias);
 
@@ -146,7 +146,7 @@ router.delete("/familias/:id", jwtCheck, DeleteFamilia);
 
 router.post("/familias/update-descuento-familia", jwtCheck, UpdateDescuentoFamilia);
 
-router.get("/articulos/getFragancias", jwtCheck, GetFragancias);
+router.get("/articulos/getFragancias", GetFragancias);
 
 router.post("/articulos/enviarCarritoWsp", jwtCheck, EnviarCarritoWsp);
 
