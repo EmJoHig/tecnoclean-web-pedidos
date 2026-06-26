@@ -17,7 +17,7 @@ const CartPage = () => {
   const dispatch = useDispatch();
   const { enviarCarritoWsp, loading } = useArticulos();
 
-  const { user, getAccessTokenSilently, getIdTokenClaims } = useAuth0();
+  const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
 
   const navigate = useNavigate();
   const [calculandoTotales, setCalculandoTotales] = useState(false);
@@ -164,6 +164,14 @@ const CartPage = () => {
 
 
   const handleClickEnviarCarrito = async () => {
+    if (isLoading) return;
+
+    if (!isAuthenticated) {
+      await loginWithRedirect({
+        appState: { returnTo: "/cart" },
+      });
+      return;
+    }
 
     try {
 
@@ -303,7 +311,7 @@ const CartPage = () => {
                 </div>
                 <div className="mt-2 p-3 bg-white/5 rounded text-sm text-gray-800">
                   <strong>Cómo funciona el descuento:</strong>
-                  <p className="mt-1 text-sm">Los descuentos se aplican por familia o promoción y ya están calculados en los totales mostrados. Al enviar el pedido armado a nuestro WhatsApp, el equipo confirmará el descuento y envío.</p>
+                  <p className="mt-1 text-sm">Los descuentos se aplican por familia o promoción y ya están calculados en los totales mostrados. Al enviar el pedido armado al WhatsApp, nuestro equipo te confirmará el pedido.</p>
                 </div>
                 <div className="flex justify-end">
                   {/* Botón mejorado con movimiento y estado */}
@@ -312,10 +320,10 @@ const CartPage = () => {
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
                     className="w-56 h-12 bg-gradient-to-r from-emerald-400 to-emerald-600 text-white font-semibold rounded-lg shadow-lg flex items-center justify-center gap-3 px-4"
-                    disabled={loadingSendMsg || loading}
+                    disabled={loadingSendMsg || loading || isLoading}
                   >
                     <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20">
-                      {loadingSendMsg || loading ? (
+                      {loadingSendMsg || loading || isLoading ? (
                         <FaSpinner className="animate-spin text-white" />
                       ) : (
                         <FaWhatsapp className="text-white" />

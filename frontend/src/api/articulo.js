@@ -4,6 +4,10 @@ import { API_URL } from "../config";
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+const authHeaders = (token) => (
+    token ? { Authorization: `Bearer ${token}` } : {}
+);
+
 
 export const getArticulosRequest = async (token) => {
     try {
@@ -25,9 +29,7 @@ export const getArticulosRequest = async (token) => {
 export const getArticulosCategoriaRequest = async (token, checkedCategorys, checkedSeccion, offset) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/getArticulosPorCategoria`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            headers: authHeaders(token),
             params: {
                 checkedCategorys: checkedCategorys,
                 checkedSeccion: checkedSeccion,
@@ -46,9 +48,7 @@ export const getArticulosCategoriaRequest = async (token, checkedCategorys, chec
 export const getArticulosQueryRequest = async (token, query) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/getArticulosQuery`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            headers: authHeaders(token),
             params: { query },
         });
 
@@ -159,9 +159,7 @@ export const getFamiliasPublicRequest = async () => {
 export const getFamiliasConArticulosRequest = async (token) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/getFamiliasConArticulos`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            headers: authHeaders(token),
         });
 
         return response;
@@ -355,9 +353,7 @@ export const UpdateDescuentoFamiliaRequest = async (token, bodyDtoFamilia) => {
 export const getFraganciasRequest = async (token) => {
     try {
         const response = await axios.get(`${API_URL}/articulos/getFragancias`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            headers: authHeaders(token),
         });
 
         return response;

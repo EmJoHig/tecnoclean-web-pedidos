@@ -92,16 +92,10 @@ export function ArticuloProvider({ children }) {
   const GetArticulosPorCategoria = async (checkedCategorys, checkedSeccion, offset) => {
 
     try {
-
-      const token = await getAccessTokenSilently({
-        audience: 'https://tecnoclean/api',
-      });
-
-
       //setArticulos(null);
       setLoading(true);
 
-      const res = await getArticulosCategoriaRequest(token, checkedCategorys, checkedSeccion, offset);
+      const res = await getArticulosCategoriaRequest(null, checkedCategorys, checkedSeccion, offset);
 
       if (res != null) {
         if (offset > 0) {
@@ -134,13 +128,7 @@ export function ArticuloProvider({ children }) {
 
   const GetArticulosQuery = async (query) => {
     try {
-
-      const token = await getAccessTokenSilently({
-        audience: 'https://tecnoclean/api',
-      });
-
-
-      const res = await getArticulosQueryRequest(token, query);
+      const res = await getArticulosQueryRequest(null, query);
 
 
       if (res != null) {
@@ -216,12 +204,7 @@ export function ArticuloProvider({ children }) {
 
   const GetFamiliasConArticulos = async () => {
     try {
-
-      const token = await getAccessTokenSilently({
-        audience: 'https://tecnoclean/api',
-      });
-
-      const res = await getFamiliasConArticulosRequest(token);
+      const res = await getFamiliasConArticulosRequest(null);
       setFamiliasConArticulos(res.data);
       return res.data;
     } catch (error) {
@@ -378,12 +361,7 @@ export function ArticuloProvider({ children }) {
 
   const GetFragancias = async () => {
     try {
-
-      const token = await getAccessTokenSilently({
-        audience: 'https://tecnoclean/api',
-      });
-
-      const res = await getFraganciasRequest(token);
+      const res = await getFraganciasRequest(null);
       setFragancias(res.data);
       return res.data;
     } catch (error) {

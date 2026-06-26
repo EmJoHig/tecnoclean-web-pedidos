@@ -13,9 +13,11 @@ const domain = import.meta.env.VITE_AUTH0_DOMAIN; // Para Vite
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID; // Para Vite
 
 const onRedirectCallback = (appState) => {
-  // const navigate = useNavigate();
-  // // navigate(appState?.returnTo || '/home');
-  // navigate("/home");
+  window.history.replaceState(
+    {},
+    document.title,
+    appState?.returnTo || window.location.pathname
+  );
 };
 
 

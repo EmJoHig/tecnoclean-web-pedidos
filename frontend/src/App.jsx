@@ -123,20 +123,17 @@ function App() {
 
                     {/* <Route path="/welcome" element={<WelcomePage />} /> */}
 
-                    <Route element={<ProtectedRoute />}>
-                      <Route path="/shop" element={<ShopPage />} />
+                    <Route path="/shop" element={<ShopPage />} />
 
-                      <Route path="/cart" element={<CartPage />} />
+                    <Route path="/cart" element={<CartPage />} />
 
-                      <Route path="/articulo/:_id" element={<DetalleArticuloPage />}></Route>
+                    <Route path="/articulo/:_id" element={<DetalleArticuloPage />}></Route>
 
-                      {/* <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} /> */}
-                      <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-                        <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} />
-                        <Route path="/descuentos-familias" element={<FamiliasDescuentosPage />} />
-                        <Route path="/grupos-familias" element={<GruposFamiliasPage />} />
-                      </Route>
-                      
+                    {/* <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} /> */}
+                    <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                      <Route path="/administrar-articulos" element={<AdministrarArticulosPage />} />
+                      <Route path="/descuentos-familias" element={<FamiliasDescuentosPage />} />
+                      <Route path="/grupos-familias" element={<GruposFamiliasPage />} />
                     </Route>
 
                   </Route>
