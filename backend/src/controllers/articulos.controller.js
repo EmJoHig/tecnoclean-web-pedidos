@@ -16,6 +16,46 @@ import { TELEFONO_WHATSAPP } from "../config.js";
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const extractObjectIds = (value) => {
+  const ids = [];
+
+  const visit = (current) => {
+    if (current == null || current === "") return;
+
+    if (typeof current === "string") {
+      current
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .forEach((item) => ids.push(item));
+      return;
+    }
+
+    if (Array.isArray(current)) {
+      current.forEach(visit);
+      return;
+    }
+
+    if (typeof current === "object") {
+      if (current._id) {
+        visit(current._id);
+        return;
+      }
+
+      Object.values(current).forEach(visit);
+      return;
+    }
+
+    ids.push(String(current).trim());
+  };
+
+  visit(value);
+
+  return [...new Set(ids)]
+    .filter((id) => mongoose.Types.ObjectId.isValid(id))
+    .map((id) => new mongoose.Types.ObjectId(id));
+};
+
 // const app = express();
 // app.use(express.json());
 
@@ -58,7 +98,7 @@ export const GetArticulos = async (req, res) => {
 
 export const GetArticulosCategoria = async (req, res) => {
 
-  let { checkedCategorys, offset = 0 } = req.query;
+  let { checkedCategorys, familiaIds, offset = 0 } = req.query;
 
   const limit = 10;
 
@@ -66,25 +106,15 @@ export const GetArticulosCategoria = async (req, res) => {
     stock: { $gt: 0 }
   };
 
-  if (checkedCategorys) {
-    // Si viene como string, lo pasamos a array
-    if (typeof checkedCategorys === "string") {
-      checkedCategorys = [checkedCategorys];
-    }
+  const rawFamiliaIds = familiaIds || checkedCategorys;
 
-    const validIds = checkedCategorys
-      .map(cat => {
-        // Si es objeto, sacamos el _id
-        if (typeof cat === "object" && cat._id) {
-          return cat._id;
-        }
-        return cat;
-      })
-      .filter(id => mongoose.Types.ObjectId.isValid(id))
-      .map(id => new mongoose.Types.ObjectId(id));
+  if (rawFamiliaIds) {
+    const validIds = extractObjectIds(rawFamiliaIds);
 
     if (validIds.length > 0) {
       searchOptions.familiaArticulo = { $in: validIds };
+    } else {
+      return res.status(200).json([]);
     }
   }
 
@@ -611,36 +641,35 @@ export const GetArticulosQuery = async (req, res) => {
 
 
 const generarMensaje = (bodyCarritoUsuario) => {
-  // Mensaje profesional para WhatsApp: usamos ~tachado~ y *negrita* para resaltar precios
   const formatMoney = (v) =>
     Number(v || 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  let mensaje = "🛒 *NUEVO PEDIDO* \n\n";
+  let mensaje = "*NUEVO PEDIDO* \n\n";
   mensaje += `*Email:* ${bodyCarritoUsuario.mailUsuario} \n`;
   mensaje += `*Nombre:* ${bodyCarritoUsuario.nombreUsuario} \n`;
   mensaje += `*Tel:* ${bodyCarritoUsuario.telefono} \n\n`;
-  mensaje += "*Artículos:* \n";
+  mensaje += "*Articulos:* \n";
 
   bodyCarritoUsuario.articulos.forEach((item) => {
-    // calcular precio unitario original si viene subtotalSinDescuento
     let originalUnit = null;
     if (item.subtotalSinDescuento && item.quantity) {
       originalUnit = Number(item.subtotalSinDescuento) / Number(item.quantity);
     }
 
-    mensaje += `• ${item.name}\n`;
-    mensaje += `  Cantidad: ${item.quantity}\n`;
+    const nombreArticulo = item.name || item.productName || item.descripcion || "Articulo";
+    const cantidad = Number(item.quantity || 0);
+    const tieneDescuento = Number(item.descuentoPorcentaje || 0) > 0;
+
+    mensaje += `- ${nombreArticulo}\n`;
+    mensaje += `  Cantidad: ${cantidad} unidades\n`;
 
     if (item.fragancia) {
       mensaje += `  Fragancia: ${item.fragancia}\n`;
     }
 
-    if (item.color && item.color !== "") {
+    if (item.color) {
       mensaje += `  Color: ${item.color}\n`;
     }
-
-    // Mostrar precio unitario: precio original tachado (si existe) y precio final en negrita
-    const tieneDescuento = item.descuentoPorcentaje && Number(item.descuentoPorcentaje) > 0;
 
     if (tieneDescuento && originalUnit) {
       mensaje += `  Precio unitario: ~$ ${formatMoney(originalUnit)}~  *$ ${formatMoney(item.precioUnitario || originalUnit)}*\n`;
@@ -649,26 +678,26 @@ const generarMensaje = (bodyCarritoUsuario) => {
     }
 
     if (tieneDescuento) {
-      mensaje += `  Descuento: ${item.descuentoPorcentaje}% \n`;
+      mensaje += `  Descuento: ${item.descuentoPorcentaje}%\n`;
     }
 
     if (item.totalItem != null) {
       mensaje += `  Subtotal item: *$ ${formatMoney(item.totalItem)}*\n`;
     }
 
-    mensaje += `\n`;
+    mensaje += "\n";
   });
 
-  // Calculamos precios totales: con y sin descuento (si vienen en el body, los usamos)
   let precioConDescuento = null;
   let precioSinDescuento = null;
 
   if (bodyCarritoUsuario.precioTotal != null) {
     precioConDescuento = Number(bodyCarritoUsuario.precioTotal);
   } else {
-    // sumar totalItem
     precioConDescuento = bodyCarritoUsuario.articulos.reduce((acc, it) => {
-      const v = it.totalItem != null ? Number(it.totalItem) : (it.precioUnitario != null ? Number(it.precioUnitario) * Number(it.quantity || 0) : 0);
+      const v = it.totalItem != null
+        ? Number(it.totalItem)
+        : (it.precioUnitario != null ? Number(it.precioUnitario) * Number(it.quantity || 0) : 0);
       return acc + v;
     }, 0);
   }
@@ -676,31 +705,32 @@ const generarMensaje = (bodyCarritoUsuario) => {
   if (bodyCarritoUsuario.precioTotalSinDescuento != null) {
     precioSinDescuento = Number(bodyCarritoUsuario.precioTotalSinDescuento);
   } else {
-    // sumar subtotalSinDescuento si existe, si no calcular desde precio original por item
     precioSinDescuento = bodyCarritoUsuario.articulos.reduce((acc, it) => {
       if (it.subtotalSinDescuento != null) return acc + Number(it.subtotalSinDescuento);
       if (it.subtotal != null && it.subtotal !== it.totalItem) return acc + Number(it.subtotal);
-      // intentar calcular desde precio unitario original
-      if (it.subtotalSinDescuento == null && it.quantity && it.subtotalSinDescuento == null) {
-        // si no hay dato, intentamos con precioUnitario sin descuento (no siempre disponible)
-        return acc + (it.precioUnitario != null ? Number(it.precioUnitario) * Number(it.quantity) : 0);
-      }
-      return acc;
+      return acc + (it.precioUnitario != null ? Number(it.precioUnitario) * Number(it.quantity || 0) : 0);
     }, 0);
   }
 
-  // Mostrar ambos totales: sin descuento (tachado) y con descuento (en negrita y más visible)
-  mensaje += `*PRECIO TOTAL SIN DESCUENTO:* ~$ ${formatMoney(precioSinDescuento)}~\n\n`;
-  mensaje += `*PRECIO TOTAL CON DESCUENTO:*\n`;
-  mensaje += `*🔥 $ ${formatMoney(precioConDescuento)} 🔥*\n\n`;
+  const hayDescuento = precioSinDescuento > precioConDescuento;
 
-  mensaje += `Aguarda la confirmación de disponibilidad por parte de nuestro equipo.
-              Nota: Los descuentos indicados se aplican por familia o promoción. `;
+  if (hayDescuento) {
+    mensaje += `*PRECIO TOTAL SIN DESCUENTO:* ~$ ${formatMoney(precioSinDescuento)}~\n\n`;
+    mensaje += `*PRECIO TOTAL CON DESCUENTO:*\n`;
+  } else {
+    mensaje += `*PRECIO TOTAL:*\n`;
+  }
+
+  mensaje += `*$ ${formatMoney(precioConDescuento)}*\n\n`;
+  mensaje += "Aguarda la confirmacion de disponibilidad por parte de nuestro equipo.";
+
+  if (hayDescuento) {
+    mensaje += "\nNota: Los descuentos indicados se aplican por familia o promocion.";
+  }
 
   return mensaje.trim();
 
 };
-
 const enviarMensaje = (chatId, mensaje) => {
   return new Promise((resolve, reject) => {
     whatsapp.sendMessage(chatId, mensaje)
@@ -1516,3 +1546,4 @@ export const Migracion = async (req, res) => {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
+
