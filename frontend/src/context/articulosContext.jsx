@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   getArticulosRequest,
@@ -59,6 +59,33 @@ export function ArticuloProvider({ children }) {
   const [loading, setLoading] = useState(false);
 
   const [mostrarCargarMas, setMostrarCargarMas] = useState(true);
+  const shopRequestRef = useRef({ key: null, promise: null });
+  const lastShopFiltersKeyRef = useRef(null);
+  const familiasRequestRef = useRef(null);
+  const familiasLoadedRef = useRef(false);
+  const familiasConArticulosRequestRef = useRef(null);
+  const familiasConArticulosLoadedRef = useRef(false);
+  const fraganciasRequestRef = useRef(null);
+  const fraganciasLoadedRef = useRef(false);
+
+  const buildShopFiltersKey = (checkedCategorys = [], checkedSeccion) => {
+    const categoryIds = checkedCategorys
+      .map((category) => category?._id || category)
+      .filter(Boolean)
+      .sort()
+      .join(",");
+
+    return JSON.stringify({
+      categoryIds,
+      checkedSeccion: checkedSeccion || null,
+    });
+  };
+
+  const buildShopRequestKey = (checkedCategorys = [], checkedSeccion, offset = 0) =>
+    JSON.stringify({
+      filters: buildShopFiltersKey(checkedCategorys, checkedSeccion),
+      offset: Number(offset) || 0,
+    });
 
 
   const updateOffset = (newOffset) => {
@@ -89,39 +116,63 @@ export function ArticuloProvider({ children }) {
   };
 
 
-  const GetArticulosPorCategoria = async (checkedCategorys, checkedSeccion, offset) => {
+  const GetArticulosPorCategoria = async (checkedCategorys = [], checkedSeccion = null, offset = 0) => {
+    const normalizedOffset = Number(offset) || 0;
+    const filtersKey = buildShopFiltersKey(checkedCategorys, checkedSeccion);
+    const requestKey = buildShopRequestKey(checkedCategorys, checkedSeccion, normalizedOffset);
 
-    try {
-      //setArticulos(null);
-      setLoading(true);
-
-      const res = await getArticulosCategoriaRequest(null, checkedCategorys, checkedSeccion, offset);
-
-      if (res != null) {
-        if (offset > 0) {
-
-          setArticulos((prevArticulos) => [...prevArticulos, ...res.data]);
-
-        } else {
-          setArticulos(res.data);
-        }
-
-        if (res.data.length > 0) {
-          setMostrarCargarMas(true);
-        } else {
-          setMostrarCargarMas(false);
-        }
-
-      }
-
-      return res.data;
-    } catch (error) {
-      console.error('Error fetching articulos:', error);
-      return [];
-    } finally {
-      setLoading(false); // Desactiva la carga
+    if (
+      normalizedOffset === 0 &&
+      lastShopFiltersKeyRef.current === filtersKey &&
+      articulos.length > 0
+    ) {
+      return articulos;
     }
 
+    if (
+      shopRequestRef.current.key === requestKey &&
+      shopRequestRef.current.promise
+    ) {
+      return shopRequestRef.current.promise;
+    }
+
+    setLoading(true);
+
+    const requestPromise = getArticulosCategoriaRequest(
+      null,
+      checkedCategorys,
+      checkedSeccion,
+      normalizedOffset
+    )
+      .then((res) => {
+        const data = res?.data || [];
+
+        if (normalizedOffset > 0) {
+          setArticulos((prevArticulos) => [...prevArticulos, ...data]);
+        } else {
+          setArticulos(data);
+          setOffset(data.length || 10);
+          lastShopFiltersKeyRef.current = filtersKey;
+        }
+
+        setMostrarCargarMas(data.length > 0);
+
+        return data;
+      })
+      .catch((error) => {
+        console.error('Error fetching articulos:', error);
+        return [];
+      })
+      .finally(() => {
+        if (shopRequestRef.current.key === requestKey) {
+          shopRequestRef.current = { key: null, promise: null };
+        }
+        setLoading(false);
+      });
+
+    shopRequestRef.current = { key: requestKey, promise: requestPromise };
+
+    return requestPromise;
   };
 
 
@@ -176,40 +227,72 @@ export function ArticuloProvider({ children }) {
 
 
   const GetFamilias = async () => {
-    try {
-      let res;
+    if (familiasLoadedRef.current) {
+      return familias;
+    }
 
-      if (isAuthenticated) {
-        try {
-          const token = await getAccessTokenSilently({
-            audience: 'https://tecnoclean/api',
-          });
-          res = await getFamiliasRequest(token);
-        } catch (error) {
-          console.warn("Token no disponible. Se usa endpoint publico de familias.", error);
+    if (familiasRequestRef.current) {
+      return familiasRequestRef.current;
+    }
+
+    try {
+      const requestPromise = (async () => {
+        let res;
+
+        if (isAuthenticated) {
+          try {
+            const token = await getAccessTokenSilently({
+              audience: 'https://tecnoclean/api',
+            });
+            res = await getFamiliasRequest(token);
+          } catch (error) {
+            console.warn("Token no disponible. Se usa endpoint publico de familias.", error);
+            res = await getFamiliasPublicRequest();
+          }
+        } else {
           res = await getFamiliasPublicRequest();
         }
-      } else {
-        res = await getFamiliasPublicRequest();
-      }
 
-      setFamilias(res.data);
-      return res.data;
+        setFamilias(res.data);
+        familiasLoadedRef.current = true;
+        return res.data;
+      })();
+
+      familiasRequestRef.current = requestPromise;
+      return await requestPromise;
     } catch (error) {
       console.error('Error fetching articulos:', error);
       return [];
+    } finally {
+      familiasRequestRef.current = null;
     }
   };
 
 
   const GetFamiliasConArticulos = async () => {
+    if (familiasConArticulosLoadedRef.current) {
+      return familiasConArticulos;
+    }
+
+    if (familiasConArticulosRequestRef.current) {
+      return familiasConArticulosRequestRef.current;
+    }
+
     try {
-      const res = await getFamiliasConArticulosRequest(null);
-      setFamiliasConArticulos(res.data);
-      return res.data;
+      const requestPromise = getFamiliasConArticulosRequest(null).then((res) => {
+        const data = res?.data || [];
+        setFamiliasConArticulos(data);
+        familiasConArticulosLoadedRef.current = true;
+        return data;
+      });
+
+      familiasConArticulosRequestRef.current = requestPromise;
+      return await requestPromise;
     } catch (error) {
       console.error('Error fetching articulos:', error);
       return [];
+    } finally {
+      familiasConArticulosRequestRef.current = null;
     }
   };
 
@@ -236,6 +319,8 @@ export function ArticuloProvider({ children }) {
       });
 
       const res = await createGrupoFamiliaRequest(token, descripcion);
+      familiasLoadedRef.current = false;
+      familiasConArticulosLoadedRef.current = false;
       return res.data;
     } catch (error) {
       console.error('Error creating grupo de familia:', error);
@@ -251,6 +336,8 @@ export function ArticuloProvider({ children }) {
       });
 
       const res = await updateGrupoFamiliaRequest(token, id, descripcion);
+      familiasLoadedRef.current = false;
+      familiasConArticulosLoadedRef.current = false;
       return res.data;
     } catch (error) {
       console.error('Error updating grupo de familia:', error);
@@ -266,6 +353,8 @@ export function ArticuloProvider({ children }) {
       });
 
       const res = await deleteGrupoFamiliaRequest(token, id);
+      familiasLoadedRef.current = false;
+      familiasConArticulosLoadedRef.current = false;
       return res.data;
     } catch (error) {
       console.error('Error deleting grupo de familia:', error);
@@ -281,6 +370,8 @@ export function ArticuloProvider({ children }) {
       });
 
       const res = await updateFamiliaGrupoRequest(token, familiaId, grupoId);
+      familiasLoadedRef.current = false;
+      familiasConArticulosLoadedRef.current = false;
       return res.data;
     } catch (error) {
       console.error('Error updating grupo de familia:', error);
@@ -295,6 +386,8 @@ export function ArticuloProvider({ children }) {
       });
 
       const res = await createFamiliaRequest(token, familia);
+      familiasLoadedRef.current = false;
+      familiasConArticulosLoadedRef.current = false;
       return res.data;
     } catch (error) {
       console.error('Error creating familia:', error);
@@ -309,6 +402,8 @@ export function ArticuloProvider({ children }) {
       });
 
       const res = await updateFamiliaRequest(token, id, familia);
+      familiasLoadedRef.current = false;
+      familiasConArticulosLoadedRef.current = false;
       return res.data;
     } catch (error) {
       console.error('Error updating familia:', error);
@@ -323,6 +418,8 @@ export function ArticuloProvider({ children }) {
       });
 
       const res = await deleteFamiliaRequest(token, id);
+      familiasLoadedRef.current = false;
+      familiasConArticulosLoadedRef.current = false;
       return res.data;
     } catch (error) {
       console.error('Error deleting familia:', error);
@@ -338,6 +435,8 @@ export function ArticuloProvider({ children }) {
       });
 
       const res = await UpdateDescuentoFamiliaRequest(token, bodyDtoFamilia);
+      familiasLoadedRef.current = false;
+      familiasConArticulosLoadedRef.current = false;
       if (res && res.status === 200) {
         return "";
       } else {
@@ -360,13 +459,29 @@ export function ArticuloProvider({ children }) {
 
 
   const GetFragancias = async () => {
+    if (fraganciasLoadedRef.current) {
+      return fragancias;
+    }
+
+    if (fraganciasRequestRef.current) {
+      return fraganciasRequestRef.current;
+    }
+
     try {
-      const res = await getFraganciasRequest(null);
-      setFragancias(res.data);
-      return res.data;
+      const requestPromise = getFraganciasRequest(null).then((res) => {
+        const data = res?.data || [];
+        setFragancias(data);
+        fraganciasLoadedRef.current = true;
+        return data;
+      });
+
+      fraganciasRequestRef.current = requestPromise;
+      return await requestPromise;
     } catch (error) {
       console.error('Error fetching fragancias:', error);
       return [];
+    } finally {
+      fraganciasRequestRef.current = null;
     }
   };
 

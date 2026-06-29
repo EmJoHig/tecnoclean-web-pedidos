@@ -28,12 +28,17 @@ export const getArticulosRequest = async (token) => {
 
 export const getArticulosCategoriaRequest = async (token, checkedCategorys, checkedSeccion, offset) => {
     try {
+        const familiaIds = (checkedCategorys || [])
+            .map((category) => category?._id || category)
+            .filter(Boolean)
+            .join(",");
+
         const response = await axios.get(`${API_URL}/articulos/getArticulosPorCategoria`, {
             headers: authHeaders(token),
             params: {
-                checkedCategorys: checkedCategorys,
-                checkedSeccion: checkedSeccion,
-                offset: Number(offset) // Asegúrate de convertirlo a número
+                ...(familiaIds ? { familiaIds } : {}),
+                ...(checkedSeccion ? { checkedSeccion } : {}),
+                offset: Number(offset)
             }
         });
 
@@ -43,7 +48,6 @@ export const getArticulosCategoriaRequest = async (token, checkedCategorys, chec
         throw error;
     }
 };
-
 
 export const getArticulosQueryRequest = async (token, query) => {
     try {
@@ -538,3 +542,4 @@ export const updateStockImportarExcelPorCodigosRequest = async (token, formDataE
         throw error;
     }
 };
+

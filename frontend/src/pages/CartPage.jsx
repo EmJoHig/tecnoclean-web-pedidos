@@ -184,16 +184,12 @@ const CartPage = () => {
         const p = calcularPrecioItem(item);
 
         // si querés unitario final (con descuento aplicado)
-        const precioUnitFinal =
-          p.descuento > 0
-            ? p.precioUnit - (p.precioUnit * p.porcentajeDescuento) / 100
-            : p.precioUnit;
-
         return {
           ...item,
 
           // ✅ campos “fijos” para el backend / wsp
-          precioUnitario: Number(precioUnitFinal || 0),
+          variantId: item.variantId,
+          precioUnitario: Number(p.precioUnit || 0),
           subtotalSinDescuento: Number(p.subtotal || 0), // precio sin descuento * cantidad
           descuentoMonto: Number(p.descuento || 0), // monto descontado total del item (si tu helper lo devuelve así)
           descuentoPorcentaje: Number(p.porcentajeDescuento || 0),

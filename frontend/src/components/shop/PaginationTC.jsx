@@ -31,6 +31,7 @@ function Items({ currentItems, selectedBrands, selectedCategories }) {
       {currentItems.map((item) => (
         <div key={item._id} className="w-full">
           <ProductTC
+            {...item}
             _id={item._id}
             imagen={item.imagen? item.imagen : ""}
             codigo={item.codigo}
@@ -38,6 +39,10 @@ function Items({ currentItems, selectedBrands, selectedCategories }) {
             precio={item.precio}
             //color="Red"
             fracciones={item.fracciones ? item.fracciones : []}
+            fraccion={item.fraccion}
+            presentaciones={item.presentaciones ? item.presentaciones : []}
+            variantes={item.variantes ? item.variantes : []}
+            preciosPorFraccion={item.preciosPorFraccion ? item.preciosPorFraccion : []}
             tienefragancia={item.tienefragancia ? item.tienefragancia : false}
             familiaArticulo={item.familiaArticulo ? item.familiaArticulo : null}
             colores={item.colores ? item.colores : []}
@@ -77,13 +82,6 @@ const PaginationTC = ({ itemsPerPage, articuloslista }) => {
     (state) => state.orebiReducer.checkedCategorys
   );
 
-  useEffect(() => {
-    if (offset == 0) {
-      updateOffset(10);
-    }
-  }, [offset]);
-
-
   // const pageCount = Math.ceil(items.length / itemsPerPage);
 
   // const handlePageClick = (event) => {
@@ -112,9 +110,9 @@ const PaginationTC = ({ itemsPerPage, articuloslista }) => {
 
     setLoading(true);
     try {
-      const newOffset = offset === 0 ? 10 : offset;
+      const requestOffset = offset === 0 ? articulos.length || 10 : offset;
 
-      const response = await GetArticulosPorCategoria(checkedCategorys, null, offset);
+      const response = await GetArticulosPorCategoria(checkedCategorys, null, requestOffset);
 
       if (response && response.length > 0) {
         updateOffset((prevOffset) => prevOffset + response.length);

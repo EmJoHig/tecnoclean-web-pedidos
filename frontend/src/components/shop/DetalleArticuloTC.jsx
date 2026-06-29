@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import BreadcrumbsTC from "../../components/shop/BreadcrumbsTC";;
 import ProductInfoTC from "../../components/shop/ProductInfoTC";
 import { FaDownload } from "react-icons/fa";
+import { HiOutlineArrowLeft } from "react-icons/hi";
 import { API_URL } from "../../config";
 
 
@@ -36,8 +37,9 @@ const tabs = [
 
 const DetalleArticuloTC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [prevLocation, setPrevLocation] = useState("");
-  const [productInfo, setProductInfo] = useState([]);
+  const [productInfo, setProductInfo] = useState(null);
   const [activeTab, setActiveTab] = useState(tabs[0].id);
 
   const handleTabClick = (tabId) => {
@@ -46,9 +48,9 @@ const DetalleArticuloTC = () => {
 
   useEffect(() => {
     //aca se setea el producto seleccionado
-    setProductInfo(location.state.item);
+    setProductInfo(location.state?.item || null);
     setPrevLocation(location.pathname);
-  }, [location, productInfo.ficheTech]);
+  }, [location]);
 
   // useEffect(() => {
   //   console.log("productInfo: ", productInfo);
@@ -56,14 +58,36 @@ const DetalleArticuloTC = () => {
 
 
   if (!productInfo) {
-    return <div>Cargando...</div>; // Muestra un mensaje de carga mientras productInfo es null
+    return (
+      <div className="py-10">
+        <button
+          onClick={() => navigate("/shop")}
+          className="inline-flex items-center gap-2 text-primeColor font-semibold hover:opacity-80"
+        >
+          <HiOutlineArrowLeft className="w-6 h-6" />
+          Volver a tienda
+        </button>
+        <div className="mt-6 text-gray-600 text-lg font-semibold">
+          No se pudo cargar el detalle del articulo.
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="w-full mx-auto border-b-[1px] border-b-gray-300 mb-9">
       <div className="max-w-container mx-auto px-4">
-        <div className="mb-2">
+        <div className="mb-5 flex items-center justify-between gap-4">
           <BreadcrumbsTC title="Detalle" prevLocation={prevLocation} />
+          <button
+            onClick={() =>
+              window.history.length > 1 ? navigate(-1) : navigate("/shop")
+            }
+            className="inline-flex shrink-0 items-center gap-2 rounded border border-primeColor px-5 py-2 text-primeColor font-semibold hover:bg-primeColor hover:text-white transition"
+          >
+            <HiOutlineArrowLeft className="w-6 h-6" />
+            Volver
+          </button>
         </div>
         <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4 h-full -mt-5 xl:-mt-8 pb-10 bg-gray-100 p-4">
           <div className="h-full xl:col-span-2">

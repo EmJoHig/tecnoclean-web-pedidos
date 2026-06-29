@@ -1,36 +1,37 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../redux/orebiSlice";
-import imprimante1 from "../../assets/images/products/bestSeller/imprimante1.webp";
 import { useArticulos } from "../../context/articulosContext";
-
-// import { addToCart } from "../../../redux/orebiSlice";
+import {
+  FORCE_SINGLE_LITER_PRESENTATION,
+  formatPrice,
+  getProductBasePrice,
+  normalizePresentations,
+} from "../../utils/presentations";
 
 const ProductInfoTC = ({ productInfo }) => {
-
+  const dispatch = useDispatch();
   const { fragancias, GetFragancias } = useArticulos();
 
+  const presentations = normalizePresentations(productInfo);
   const [selectedFragancia, setSelectedFragancia] = useState("");
-  const [selectedFraccion, setSelectedFraccion] = useState("1");
   const [selectedColor, setSelectedColor] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [selectedPresentationId, setSelectedPresentationId] = useState(presentations[0]?.id);
 
-
-  const highlightStyle = {
-    color: "#d0121a", // Change this to the desired color
-    fontWeight: "bold", // Change this to the desired font weight
-  };
-
-
+  const selectedPresentation =
+    presentations.find((presentation) => presentation.id === selectedPresentationId) ||
+    presentations[0];
 
   useEffect(() => {
-    GetFragancias();
-  }, []);
+    if (productInfo?.tienefragancia) {
+      GetFragancias();
+    }
+  }, [productInfo?.tienefragancia]);
 
-
-  // Establecer el primer valor de fragancia como valor inicial si no hay uno seleccionado
   useEffect(() => {
     if (fragancias && fragancias.length > 0 && !selectedFragancia) {
-      setSelectedFragancia(fragancias[0].nombre); // Selecciona la primera fragancia por defecto
+      setSelectedFragancia(fragancias[0].nombre);
     }
   }, [fragancias, selectedFragancia]);
 
@@ -40,57 +41,77 @@ const ProductInfoTC = ({ productInfo }) => {
     }
   }, [productInfo?.colores, selectedColor]);
 
+  useEffect(() => {
+    setSelectedPresentationId(normalizePresentations(productInfo)[0]?.id);
+    setQuantity(1);
+  }, [productInfo?._id]);
 
-  const dispatch = useDispatch();
+  const addSelectedPresentationToCart = () => {
+    if (!selectedPresentation) return;
 
-  const tieneDescuento =
-    productInfo.familiaArticulo?.descuento?.activo;
+    let customId = `${productInfo._id}-${selectedPresentation.id}`;
 
-  const porcentajeDescuento =
-    productInfo.familiaArticulo?.descuento?.porcentaje || 0;
+    if (productInfo.tienefragancia && selectedFragancia) {
+      customId = `${customId}-${selectedFragancia}`;
+    }
 
-  const precioOriginal = productInfo.precio || 0;
+    if (productInfo?.colores?.length > 0 && selectedColor) {
+      customId = `${customId}-${selectedColor}`;
+    }
 
-  const precioConDescuento =
-    tieneDescuento && porcentajeDescuento > 0
-      ? precioOriginal - (precioOriginal * porcentajeDescuento) / 100
-      : precioOriginal;
-
+    dispatch(
+      addToCart({
+        _id: customId,
+        productId: productInfo._id || productInfo.id,
+        productName: productInfo.descripcion || productInfo.nombre,
+        variantId: selectedPresentation.id,
+        presentationLabel: selectedPresentation.label,
+        liters: selectedPresentation.liters,
+        codigo: productInfo.codigo,
+        name: productInfo.descripcion,
+        quantity,
+        imagen: productInfo.imagen,
+        badge: null,
+        price: selectedPresentation.originalPrice,
+        priceBase: getProductBasePrice(productInfo),
+        unitPrice: selectedPresentation.price,
+        oldUnitPrice: selectedPresentation.oldPrice,
+        discountPercent: selectedPresentation.discountPercent,
+        subtotal: selectedPresentation.price * quantity,
+        tienefragancia: productInfo.tienefragancia,
+        fragancia: productInfo.tienefragancia ? selectedFragancia : "",
+        fraccion: selectedPresentation.liters,
+        tieneFraccion: !FORCE_SINGLE_LITER_PRESENTATION && presentations.length > 0,
+        familiaArticulo: productInfo.familiaArticulo,
+        color: productInfo?.colores?.length > 0 ? selectedColor : "",
+      })
+    );
+  };
 
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="text-4xl">{productInfo.descripcion}</h2>
-      <div className="flex flex-col">
+      <h2 className="text-3xl sm:text-4xl">{productInfo.descripcion}</h2>
 
-        {tieneDescuento && porcentajeDescuento > 0 && (
+      <div className="flex flex-col">
+        {Number(selectedPresentation?.discountPercent || 0) > 0 && (
           <span className="text-sm font-semibold text-green-600">
-            -{porcentajeDescuento}% OFF
+            -{selectedPresentation.discountPercent}% OFF
           </span>
         )}
 
-        <p className="text-4xl font-bold">
-          $ {precioConDescuento.toLocaleString("es-ES", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </p>
+        <p className="text-4xl font-bold">{formatPrice(selectedPresentation?.price)}</p>
 
-        {tieneDescuento && porcentajeDescuento > 0 && (
+        {selectedPresentation?.oldPrice != null && (
           <p className="text-lg line-through text-gray-400">
-            $ {precioOriginal.toLocaleString("es-ES", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
+            {formatPrice(selectedPresentation.oldPrice)}
           </p>
         )}
-
       </div>
 
       <hr />
 
-      {/* Selección de Fragancia */}
       {productInfo.tienefragancia && (
-        <div className="mt-4">
+        <div className="mt-2">
           <label htmlFor="fragancia" className="block text-sm font-medium text-gray-700">
             Selecciona una fragancia
           </label>
@@ -98,16 +119,10 @@ const ProductInfoTC = ({ productInfo }) => {
             id="fragancia"
             name="fragancia"
             value={selectedFragancia}
-            onChange={(e) => setSelectedFragancia(e.target.value)}
+            onChange={(event) => setSelectedFragancia(event.target.value)}
             className="mt-1 w-full sm:w-1/2 lg:w-2/5 py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#e00725] focus:border-[#e00725] sm:text-sm"
-            // className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            // style={{
-            //   width: "20%",
-            //   maxHeight: "15rem",
-            //   overflowY: "auto",
-            // }}
           >
-            {fragancias && fragancias.map((fragancia) => (
+            {fragancias?.map((fragancia) => (
               <option key={fragancia.nombre} value={fragancia.nombre}>
                 {fragancia.nombre}
               </option>
@@ -116,61 +131,43 @@ const ProductInfoTC = ({ productInfo }) => {
         </div>
       )}
 
-      {/* Selección de Fracción */}
-      {productInfo?.fracciones?.length > 0 && (
-        <div>
-          <label
-            htmlFor="fraccion"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Selecciona una fracción
-          </label>
-          <select
-            id="fraccion"
-            name="fraccion"
-            value={selectedFraccion}
-            onChange={(e) => setSelectedFraccion(e.target.value)}
-            className="mt-1 w-full sm:w-1/2 lg:w-2/5 py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#e00725] focus:border-[#e00725] sm:text-sm"
+      {!FORCE_SINGLE_LITER_PRESENTATION && presentations.length > 0 && (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-semibold text-gray-700">Elegí presentación</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-xl">
+            {presentations.map((presentation) => {
+              const isSelected = presentation.id === selectedPresentation?.id;
 
-            // className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            // style={{
-            //   width: "20%",
-            //   maxHeight: "15rem",
-            //   overflowY: "auto",
-            // }}
-          >
-            {productInfo.fracciones.map((fr) => (
-              <option key={fr} value={fr}>
-                {fr} L
-              </option>
-            ))}
-          </select>
+              return (
+                <button
+                  key={presentation.id}
+                  type="button"
+                  onClick={() => setSelectedPresentationId(presentation.id)}
+                  className={`min-h-12 rounded-md border px-4 py-2 text-sm font-semibold transition ${
+                    isSelected
+                      ? "border-[#16a34a] bg-[#16a34a] text-white shadow"
+                      : "border-gray-300 bg-white text-gray-800 hover:border-[#16a34a] hover:bg-green-50"
+                  }`}
+                >
+                  {presentation.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
-
-      {/* Selección de Color */}
       {productInfo?.colores?.length > 0 && (
         <div>
-          <label
-            htmlFor="color"
-            className="block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="color" className="block text-sm font-medium text-gray-700">
             Selecciona un color
           </label>
           <select
             id="color"
             name="color"
             value={selectedColor}
-            onChange={(e) => setSelectedColor(e.target.value)}
+            onChange={(event) => setSelectedColor(event.target.value)}
             className="mt-1 w-full sm:w-1/2 lg:w-2/5 py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#e00725] focus:border-[#e00725] sm:text-sm"
-
-            // className="mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            // style={{
-            //   width: "20%",
-            //   maxHeight: "15rem",
-            //   overflowY: "auto",
-            // }}
           >
             {productInfo.colores.map((color) => (
               <option key={color} value={color}>
@@ -181,156 +178,35 @@ const ProductInfoTC = ({ productInfo }) => {
         </div>
       )}
 
-      {/* <p className="text-base text-gray-600">{renderDescripcion()}</p> */}
-
-      {/* <p className="text-base text-gray-600">{productInfo.precio}</p> */}
-
-
-      {/* <div className="flex items-center">
-        <p className="text-sm mr-2"> leave a review </p>
-
-        <svg
-          className="w-4 h-4 text-yellow-300 ms-1"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="currentColor"
-          viewBox="0 0 22 20"
-        >
-          <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
-        </svg>
-        <svg
-          className="w-4 h-4 text-yellow-300 ms-1"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="currentColor"
-          viewBox="0 0 22 20"
-        >
-          <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
-        </svg>
-        <svg
-          className="w-4 h-4 text-yellow-300 ms-1"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="currentColor"
-          viewBox="0 0 22 20"
-        >
-          <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
-        </svg>
-        <svg
-          className="w-4 h-4 text-yellow-300 ms-1"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="currentColor"
-          viewBox="0 0 22 20"
-        >
-          <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
-        </svg>
-        <svg
-          className="w-4 h-4 ms-1 text-gray-300 dark:text-gray-500"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="currentColor"
-          viewBox="0 0 22 20"
-        >
-          <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
-        </svg>
-      </div> */}
-
-      {/* <p className="font-medium text-lg">
-        <span className="font-normal">Colors:</span> {productInfo.color}
-      </p> */}
-
-
-      {/* ESTE ANDABA BIEN PERO EL DE ABAJO LE PASA EL TRAPO */}
-      {/* <button
-        onClick={() =>
-          dispatch(
-            addToCart({
-              _id: productInfo._id,
-              codigo: productInfo.codigo,
-              name: productInfo.descripcion,
-              quantity: 1,
-              imagen: productInfo.imagen,
-              badge: null,
-              price: productInfo.precio,
-              colors: productInfo.color,
-              fragancia: selectedFragancia,
-            })
-          )
-        }
-        className="w-full py-4 bg-[#16a34a] hover:bg-[#15803d] duration-300 text-white text-lg font-titleFont rounded"
-      >
-        Agregar al Carrito
-      </button> */}
+      <div className="flex items-center gap-4">
+        <span className="text-sm font-semibold text-gray-700">Cantidad</span>
+        <div className="inline-flex h-11 items-center overflow-hidden rounded-md border border-gray-300 bg-white">
+          <button
+            type="button"
+            onClick={() => setQuantity((current) => Math.max(1, current - 1))}
+            className="h-full w-11 text-2xl hover:bg-gray-100"
+          >
+            -
+          </button>
+          <span className="flex h-full min-w-12 items-center justify-center border-x border-gray-300 px-4 font-semibold">
+            {quantity}
+          </span>
+          <button
+            type="button"
+            onClick={() => setQuantity((current) => current + 1)}
+            className="h-full w-11 text-2xl hover:bg-gray-100"
+          >
+            +
+          </button>
+        </div>
+      </div>
 
       <button
-        onClick={() => {
-          // Si el código requiere fragancia, se la agregamos al _id
-          if (productInfo._fracciones && productInfo._fracciones.length > 0) {
-            // console.log("Producto con fracciones disponibles:");
-            // console.log(productInfo._fracciones);
-          }
-
-          // antes
-          // const customId = validCodes.includes(productInfo.codigo) && selectedFragancia
-          //   ? `${productInfo._id}-${selectedFragancia}`
-          //   : productInfo._id;
-
-          // ahora
-          // Construimos el ID personalizado considerando fragancia y fracción
-          let customId = productInfo._id;
-
-          // Si tiene código válido (usa fragancias)
-          if (productInfo.tienefragancia) {
-            if (selectedFragancia && selectedFraccion) {
-              customId = `${productInfo._id}-${selectedFragancia}-${selectedFraccion}`;
-            } else if (selectedFragancia) {
-              customId = `${productInfo._id}-${selectedFragancia}`;
-            } else if (selectedFraccion) {
-              customId = `${productInfo._id}-${selectedFraccion}`;
-            }
-          } else if (selectedFraccion) {
-            // Si no tiene fragancia pero sí fracción
-            customId = `${productInfo._id}-${selectedFraccion}`;
-          }
-
-          // Si tiene colores
-          if (productInfo?.colores?.length > 0 && selectedColor) {
-            customId = `${customId}-${selectedColor}`;
-          }
-
-          dispatch(
-            addToCart({
-              _id: customId,
-              codigo: productInfo.codigo,
-              name: productInfo.descripcion,
-              quantity: 1,
-              imagen: productInfo.imagen,
-              badge: null,
-              price: productInfo.precio,
-              // colors: productInfo.color,
-              tienefragancia: productInfo.tienefragancia,
-              fragancia: productInfo.tienefragancia ? selectedFragancia : "",
-              fraccion: productInfo.fracciones?.length === 0 ? "1" : selectedFraccion,
-              tieneFraccion: productInfo.fracciones?.length > 0,
-              familiaArticulo: productInfo.familiaArticulo, // Agregamos la familia completa para cálculos futuros
-              color: productInfo?.colores?.length > 0 ? selectedColor : "",
-            })
-          );
-        }}
+        onClick={addSelectedPresentationToCart}
         className="w-full py-4 bg-[#16a34a] hover:bg-[#15803d] duration-300 text-white text-lg font-titleFont rounded"
       >
-        Agregar al Carrito
+        Agregar al carrito
       </button>
-
-
-
-
-
-      {/* <p className="font-normal text-sm">
-        <span className="text-base font-medium"> Categories:</span> Spring
-        collection, Streetwear, Women Tags: featured SKU: N/A
-      </p> */}
     </div>
   );
 };

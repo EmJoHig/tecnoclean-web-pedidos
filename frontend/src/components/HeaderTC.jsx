@@ -50,9 +50,9 @@ const HeaderTC = () => {
     // Verificar el rol del usuario cuando el componente se monta
     if (isAuthenticated && user) {
       const roles = user['https://tecnoclean/api/roles'];
-      if (roles && roles.includes('ADMIN')) {
-        setIsAdmin(true);
-      }
+      setIsAdmin(roles?.includes('ADMIN') ?? false);
+    } else {
+      setIsAdmin(false);
     }
 
     // console.log("user:", user);
@@ -130,21 +130,22 @@ const HeaderTC = () => {
                     <li>Inicio</li>
                   </NavLink>
 
+                  <NavLink
+                    key={2}
+                    to="/shop"
+                    state={{ data: location.pathname.split("/")[1] }}
+                    className={({ isActive }) =>
+                      `flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base
+                      ${isActive ? "text-white-400 underline underline-offset-[4px] decoration-[1px]" : "text-white"} 
+                      hover:text-white-400 underline-offset-[4px] decoration-[2px]
+                      md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0`
+                    }
+                  >
+                    <li>Tienda</li>
+                  </NavLink>
+
                   {isAuthenticated ? (
                     <>
-                      <NavLink
-                        key={2}
-                        to="/shop"
-                        state={{ data: location.pathname.split("/")[1] }}
-                        className={({ isActive }) =>
-                          `flex font-normal hover:font-bold w-20 h-6 justify-center items-center px-12 text-base
-                          ${isActive ? "text-white-400 underline underline-offset-[4px] decoration-[1px]" : "text-white"} 
-                          hover:text-white-400 underline-offset-[4px] decoration-[2px]
-                          md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0`
-                        }
-                      >
-                        <li>Tienda</li>
-                      </NavLink>
                       {isAdmin && (
                         <NavLink
                           key={3}
@@ -212,8 +213,6 @@ const HeaderTC = () => {
                         </NavLink>
                       </li>
 
-                      {isAuthenticated ? (
-                        <>
                       <li
                         className="font-normal hover:font-bold items-center text-lg text-gray-200 hover:underline underline-offset-[4px] decoration-[1px] hover:text-white md:border-r-[2px] border-r-gray-300 hoverEffect last:border-r-0"
                         key="2"
@@ -227,6 +226,8 @@ const HeaderTC = () => {
                         </NavLink>
                       </li>
 
+                      {isAuthenticated ? (
+                        <>
                       <li>
                         <button
                           onClick={logout}

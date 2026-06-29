@@ -10,6 +10,12 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/orebiSlice";
 import { toast } from "react-toastify";
 import { API_URL } from "../config";
+import {
+  FORCE_SINGLE_LITER_PRESENTATION,
+  formatPrice,
+  getProductBasePrice,
+  normalizePresentations,
+} from "../utils/presentations";
 
 const ProductTC = (props) => {
   const dispatch = useDispatch();
@@ -21,6 +27,11 @@ const ProductTC = (props) => {
   const [wishList, setWishList] = useState([]);
   const navigate = useNavigate();
   const productItem = props;
+  const presentations = normalizePresentations(props);
+  const lowestPresentation = presentations.reduce(
+    (lowest, presentation) => (presentation.price < lowest.price ? presentation : lowest),
+    presentations[0]
+  );
 
   const handleProductDetails = () => {
 
@@ -37,18 +48,8 @@ const ProductTC = (props) => {
     console.log(wishList);
   };
 
-  const tieneDescuento =
-    props.familiaArticulo?.descuento?.activo;
-
-  const porcentajeDescuento =
-    props.familiaArticulo?.descuento?.porcentaje || 0;
-
-  const precioOriginal = props.precio || 0;
-
-  const precioConDescuento =
-    tieneDescuento && porcentajeDescuento > 0
-      ? precioOriginal - (precioOriginal * porcentajeDescuento) / 100
-      : precioOriginal;
+  const tieneDescuento = Number(lowestPresentation?.discountPercent || 0) > 0;
+  const porcentajeDescuento = lowestPresentation?.discountPercent || 0;
 
 
   return (
@@ -79,18 +80,20 @@ const ProductTC = (props) => {
               )}
 
               <p className="text-xl font-bold text-[#4a4949]">
-                $ {precioConDescuento.toLocaleString("es-ES", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                {FORCE_SINGLE_LITER_PRESENTATION
+                  ? formatPrice(lowestPresentation?.price)
+                  : `Desde ${formatPrice(lowestPresentation?.price)}`}
               </p>
 
-              {tieneDescuento && porcentajeDescuento > 0 && (
+              {lowestPresentation?.oldPrice != null && (
                 <p className="text-sm line-through text-gray-400">
-                  $ {precioOriginal.toLocaleString("es-ES", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+                  {formatPrice(lowestPresentation.oldPrice)}
+                </p>
+              )}
+
+              {!FORCE_SINGLE_LITER_PRESENTATION && (
+                <p className="mt-1 text-xs text-gray-600">
+                  Presentaciones: {presentations.map((presentation) => presentation.label).join(" / ")}
                 </p>
               )}
 
@@ -122,30 +125,42 @@ const ProductTC = (props) => {
             <li
               onClick={() => {
 
-                // if (props.fracciones && props.fracciones.length > 0) {
                 if (
-                  props?.fracciones?.length > 0 ||
+                  (!FORCE_SINGLE_LITER_PRESENTATION && presentations.length > 1) ||
+                  props.tienefragancia ||
                   props?.colores?.length > 0
                 ) {
-                  // Redirigir al detalle del producto para seleccionar fracción o color
                   navigate(`/articulo/${encodeURIComponent(props.descripcion)}`, {
                     state: {
                       item: productItem,
                     },
                   });
                 } else {
+                  const presentation = presentations[0];
                   // Agregar al carrito normalmente
                   dispatch(
                     addToCart({
-                      _id: props._id + "-1",
+                      _id: `${props._id}-${presentation.id}`,
+                      productId: props._id || props.id,
+                      productName: props.descripcion || props.nombre,
+                      variantId: presentation.id,
+                      presentationLabel: presentation.label,
+                      liters: presentation.liters,
                       codigo: props.codigo,
                       name: props.descripcion,
                       quantity: 1,
                       imagen: props.imagen,
                       badge: props.badge,
-                      price: props.precio,
+                      price: presentation.originalPrice,
+                      priceBase: getProductBasePrice(props),
+                      unitPrice: presentation.price,
+                      oldUnitPrice: presentation.oldPrice,
+                      discountPercent: presentation.discountPercent,
+                      subtotal: presentation.price,
                       //colors: props.color,
                       fragancia: "",
+                      fraccion: presentation.liters,
+                      tieneFraccion: !FORCE_SINGLE_LITER_PRESENTATION,
                       familiaArticulo: props.familiaArticulo,
                       color: ""
                     })

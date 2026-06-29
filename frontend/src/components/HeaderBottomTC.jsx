@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { HiOutlineMenuAlt4, HiOutlineShoppingBag, HiOutlineArrowLeft } from "react-icons/hi";
+import { HiOutlineMenuAlt4, HiOutlineShoppingBag } from "react-icons/hi";
 import { FaSearch, FaShoppingCart } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
 import { ImPlus, ImMinus } from "react-icons/im";
 import Flex from "../components/designLayouts/Flex";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleCategory } from "../redux/orebiSlice";
+import { setCheckedCategorys, toggleCategory } from "../redux/orebiSlice";
 import useIsMobile from "../hooks/useIsMobile";
 import { useArticulos } from "../context/articulosContext";
 import { API_URL } from "../config";
-import { calcularPrecioItem } from "../utils/calcularPrecioDescuento";
+import { FORCE_SINGLE_LITER_PRESENTATION, formatPrice, normalizePresentations } from "../utils/presentations";
 
 
 
@@ -26,7 +26,7 @@ const agruparFamiliasPorGrupo = (familias) => {
 };
 
 const HeaderBottom = ({ mode = "default" }) => {
-  const { articulosQuery, GetArticulosQuery, familiasConArticulos, GetFamiliasConArticulos, updateOffset, GetArticulosPorCategoria } = useArticulos();
+  const { articulosQuery, GetArticulosQuery, familiasConArticulos, GetFamiliasConArticulos } = useArticulos();
   const products = useSelector((state) => state.orebiReducer.products);
   const isMobile = useIsMobile();
 
@@ -46,8 +46,10 @@ const HeaderBottom = ({ mode = "default" }) => {
   const checkedCategorys = useSelector((state) => state.orebiReducer.checkedCategorys);
 
   useEffect(() => {
-    GetFamiliasConArticulos();
-  }, []);
+    if (isMobile && mode !== "detalle") {
+      GetFamiliasConArticulos();
+    }
+  }, [isMobile, mode]);
 
   // Agrupar familias por grupo dentro de useEffect y manejar loading
   useEffect(() => {
@@ -66,11 +68,6 @@ const HeaderBottom = ({ mode = "default" }) => {
   }, [familiasConArticulos]);
 
 
-
-  useEffect(() => {
-    GetArticulosPorCategoria(checkedCategorys, null, 0);
-    updateOffset(0);
-  }, [checkedCategorys]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -109,22 +106,8 @@ const HeaderBottom = ({ mode = "default" }) => {
     <div className="w-full bg-[#F5F5F3] relative">
       <div className="max-w-container mx-auto">
         <Flex className="flex flex-col lg:flex-row items-start lg:items-center justify-between w-full px-4 pb-4 lg:pb-0 h-full lg:h-24">
-          {isMobile && (
+          {isMobile && mode !== "detalle" && (
             <>
-              {mode === "detalle" ? (
-                // 🔙 MODO DETALLE MOBILE
-                <div className="flex h-14 items-center gap-3 mt-5">
-                  <button
-                    onClick={() => navigate("/shop")}
-                    className="flex items-center gap-2 text-primeColor font-semibold"
-                  >
-                    <HiOutlineArrowLeft className="w-7 h-7" />
-                    <span className="text-[16px]">Volver</span>
-                  </button>
-                </div>
-              ) : (
-                // 🔎 MODO NORMAL (FILTROS)
-                <>
                   <div
                     ref={ref}
                     className="flex h-14 items-center gap-4 text-primeColor mt-5"
@@ -143,9 +126,7 @@ const HeaderBottom = ({ mode = "default" }) => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          checkedCategorys.forEach((cat) =>
-                            dispatch(toggleCategory(cat))
-                          );
+                          dispatch(setCheckedCategorys([]));
                         }}
                         className="text-sm text-[#e00725] hover:text-[#c00620] font-medium whitespace-nowrap underline underline-offset-2"
                       >
@@ -239,8 +220,6 @@ const HeaderBottom = ({ mode = "default" }) => {
                       ))}
                     </motion.ul>
                   )}
-                </>
-              )}
             </>
           )}
           <div className="mb-6 mt-7 relative w-full lg:w-[600px] h-[50px] text-base text-primeColor bg-white flex items-center gap-2 justify-between px-6 rounded-xl">
@@ -294,6 +273,14 @@ const HeaderBottom = ({ mode = "default" }) => {
 
                       {(() => {
                         // Adaptamos el item de búsqueda al formato del helper del carrito
+                        const presentations = normalizePresentations(item);
+                        const lowestPresentation = presentations.reduce(
+                          (lowest, presentation) =>
+                            presentation.price < lowest.price ? presentation : lowest,
+                          presentations[0]
+                        );
+                        const tieneDescuento = lowestPresentation?.oldPrice != null;
+                        /*
                         const precios = calcularPrecioItem({
                           ...item,
                           // tu API usa "precio", el carrito usa "price"
@@ -305,32 +292,24 @@ const HeaderBottom = ({ mode = "default" }) => {
 
                         const precioFinalUnit = precios.total; // total para quantity=1 => unitario final (con descuento si aplica)
                         const precioOriginalUnit = precios.subtotal; // subtotal para quantity=1 => unitario original
-                        const tieneDescuento = precios.descuento > 0;
+                        */
 
                         return (
                           <p className="text-lg flex items-center gap-2 flex-wrap">
-                            <span>Precio:</span>
+                            {!FORCE_SINGLE_LITER_PRESENTATION && <span>Desde:</span>}
 
                             <span className="text-primeColor font-semibold">
-                              ${" "}
-                              {precioFinalUnit.toLocaleString("es-ES", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
+                              {formatPrice(lowestPresentation?.price)}
                             </span>
 
                             {tieneDescuento && (
                               <>
                                 <span className="text-gray-500 line-through text-sm">
-                                  ${" "}
-                                  {precioOriginalUnit.toLocaleString("es-ES", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                  })}
+                                  {formatPrice(lowestPresentation.oldPrice)}
                                 </span>
 
                                 <span className="text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">
-                                  -{precios.porcentajeDescuento}%
+                                  -{lowestPresentation.discountPercent}%
                                 </span>
                               </>
                             )}

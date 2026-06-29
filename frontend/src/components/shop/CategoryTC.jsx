@@ -4,7 +4,7 @@ import { ImPlus, ImMinus } from "react-icons/im";
 import { IoMdClose } from "react-icons/io";
 import NavTitleTC from "./NavTitleTC";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleCategory } from "../../redux/orebiSlice";
+import { setCheckedCategorys, toggleCategory } from "../../redux/orebiSlice";
 import { useArticulos } from "../../context/articulosContext";
 
 const CategoryTC = () => {
@@ -14,10 +14,6 @@ const CategoryTC = () => {
   const [familiasAgrupadas, setFamiliasAgrupadas] = useState({});
 
   const {
-    GetArticulosPorCategoria,
-    updateOffset,
-    mostrarCargarMas,
-    familias,
     familiasConArticulos,
     GetFamiliasConArticulos,
   } = useArticulos();
@@ -56,11 +52,6 @@ const CategoryTC = () => {
     GetFamiliasConArticulos();
   }, []);
 
-  useEffect(() => {
-    GetArticulosPorCategoria(checkedCategorys, null, 0);
-    updateOffset(0);
-  }, [checkedCategorys]);
-
   const handleToggleCategory = async (category) => {
     await dispatch(toggleCategory(category));
   };
@@ -81,7 +72,7 @@ const CategoryTC = () => {
         {checkedCategorys.length > 0 && (
           <button
             onClick={() => {
-              checkedCategorys.forEach((cat) => dispatch(toggleCategory(cat)));
+              dispatch(setCheckedCategorys([]));
             }}
             className="text-sm text-[#e00725] font-medium hover:opacity-80 transition"
           >

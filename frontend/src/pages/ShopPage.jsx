@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import HeaderBottomTC from "../components/HeaderBottomTC";
 import DiscountsBanner from "../components/DiscountsBanner";
@@ -6,7 +6,7 @@ import BreadcrumbsTC from "../components/shop/BreadcrumbsTC";
 import PaginationTC from "../components/shop/PaginationTC";
 import ProductBannerTC from "../components/shop/ProductBannerTC";
 import ShopSideNavTC from "../components/shop/ShopSideNavTC";
-import { filterSeccion, toggleCategory } from "../redux/orebiSlice";
+import { setCheckedCategorys } from "../redux/orebiSlice";
 import { useArticulos } from "../context/articulosContext";
 
 
@@ -25,6 +25,15 @@ const ShopPage = () => {
 
   const checkedCategorys = useSelector(
     (state) => state.orebiReducer.checkedCategorys
+  );
+  const checkedCategorysKey = useMemo(
+    () =>
+      checkedCategorys
+        .map((category) => category?._id)
+        .filter(Boolean)
+        .sort()
+        .join(","),
+    [checkedCategorys]
   );
 
   // const articulosShop = useSelector(
@@ -53,7 +62,7 @@ const ShopPage = () => {
 
   useEffect(() => {
     GetArticulosPorCategoria(checkedCategorys, null, 0);
-  }, [checkedCategorys]);
+  }, [checkedCategorysKey]);
 
   const familiasConDescuento = familias?.filter(
     (fam) =>
@@ -113,9 +122,7 @@ const ShopPage = () => {
   const handleVerProductosDescuento = (familia) => {
     if (!familia) return;
 
-    checkedCategorys.forEach((cat) => dispatch(toggleCategory(cat)));
-
-    dispatch(toggleCategory(familia));
+    dispatch(setCheckedCategorys([familia]));
   };
 
 
@@ -164,7 +171,7 @@ const ShopPage = () => {
   return (
     <>
       <div className="bg-[#f7f4f5]">
-        <div className="max-w-container mx-auto px-4 pt-7">
+        <div className="max-w-container mx-auto px-4 pt-7 mb-10">
           <DiscountsBanner
             familias={familiasConDescuento}
             variant="inline"
